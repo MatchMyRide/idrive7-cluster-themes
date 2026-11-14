@@ -1735,9 +1735,9 @@ class HudApp {
                 const d = this.car.data();
                 return d.stage === 'D' || (!d.stage && isNum(d.gear) && d.gear > 0) ? this._program(d) : (d.stage || '-');
             }
-            case 'gearsUp': {      // Supercar's gear band: the next four gears up (in P / R / N: 1 to 4)
+            case 'gearsUp': {      // Supercar's gear band: the next three gears up (in P / R / N: 1 to 3)
                 const d = this.car.data(), g = isNum(d.gear) && d.gear > 0 && !/[PRN]/.test(d.stage || '') ? d.gear : 0, out = [];
-                for (let n = g + 1; n <= Math.min(8, g + 4); n++) out.push(n);
+                for (let n = g + 1; n <= Math.min(8, g + 3); n++) out.push(n);
                 return out.join(' ');
             }
             case 'gearPrev': case 'gearNext': case 'gearMode': {   // Supercar: the gears either side, A (automatic) / M
