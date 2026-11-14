@@ -16,14 +16,20 @@
       "h": 660,
       "color": "bg",
       "hole": [
-        1252,
-        204,
-        628,
-        422
+        965,
+        201,
+        918,
+        428
       ],
       "holeWhen": "mapUp",
-      "holeInset": 4,
-      "holeRadius": 22
+      "holeInset": 3,
+      "holeRadius": 0,
+      "holeCut": 44,
+      "holeCircle": [
+        960,
+        392,
+        301
+      ]
     },
     {
       "id": "fr_map",

@@ -2307,6 +2307,8 @@ class HudApp {
         } else if (w.type === 'fill') {
             c.uniform(ref, 'u_size', [w.w, w.h]);
             c.uniform(ref, 'u_color', rgba(color(t, w.color || 'bg')));
+            const hc = w.holeCircle;   // the hole's shape: a round bite [x, y, r] in target px, chamfered corners holeCut px
+            c.uniform(ref, 'u_holeC', [hc ? hc[0] - w.x : 0, hc ? hc[1] - w.y : 0, hc ? hc[2] : 0, w.holeCut || 0]);
             c.uniform(ref, 'u_hole', this._hole(w));
             c.uniform(ref, 'u_holeR', [this._holeRadius(w)]); this._cuts(c, ref, w);
         } else if (w.type === 'bgauge') {     // Hyper's round gauges (shaders.js bgauge): "measure" rpm, else "signal" between "min" and "max"

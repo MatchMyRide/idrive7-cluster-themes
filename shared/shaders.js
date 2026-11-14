@@ -295,6 +295,7 @@ float cutA(vec4 r) {
 uniform vec4 u_color;
 uniform vec4 u_hole;
 uniform float u_holeR;
+uniform vec4 u_holeC;     // the hole's shape: a round bite x, y, r (layer px, r 0 = none) and corners chamfered w px
 
 void main() {
     vec2 p = vec2(v_uv.x * u_size.x, v_uv.y * u_size.y);
@@ -303,6 +304,8 @@ void main() {
         vec2 hs = u_hole.zw * 0.5;
         vec2 q = abs(p - (u_hole.xy + hs)) - (hs - vec2(u_holeR));
         float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - u_holeR;
+        if (u_holeC.w > 0.0) { vec2 o = abs(p - (u_hole.xy + hs)); d = max(d, (o.x + o.y - (hs.x + hs.y - u_holeC.w)) * 0.7071); }
+        if (u_holeC.z > 0.0) d = max(d, u_holeC.z - length(p - u_holeC.xy));
         a *= clamp(d + 0.5, 0.0, 1.0);
     }
     gl_FragColor = vec4(u_color.rgb, a);
