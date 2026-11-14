@@ -56,7 +56,8 @@ function pixelBytes() { let n = 0; layers.forEach((l) => { if (l.image) n += l.i
 function layerCount() { let n = 0; layers.forEach((l) => { if (l.kind !== 'asset') n++; }); return n; }
 const TOTAL_ASSETS = 32, ASSETS_PER_CLIENT = 16;   // CompositorLimits assets / assets_per_client
 const mib = (b) => (b / 1048576).toFixed(1) + ' MiB';
-const SOCK = path.join(os.tmpdir(), 'hud-bench-' + process.pid + '.sock');
+// Windows: a named pipe instead of a Unix socket (local patch)
+const SOCK = process.platform === 'win32' ? '\\\\.\\pipe\\hud-bench-' + process.pid : path.join(os.tmpdir(), 'hud-bench-' + process.pid + '.sock');
 const ROOT = path.join(__dirname, '..');
 const APP_ID = process.argv[2] || process.env.BENCH_APP || 'idrive_hud_widgets';
 const APP_DIR = path.join(ROOT, 'apps', APP_ID);
@@ -387,7 +388,7 @@ function build() {
         fs.writeFileSync(path.join(sdk, 'package.json'), JSON.stringify({ name: 'oap-sdk', version: '0.0.0-bench-stub', main: 'index.js' }) + '\n');
     }
     try {
-        const out = execFileSync('python3', [path.join(ROOT, 'kit', 'tools', 'build.py'), APP_ID], { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
+        const out = execFileSync(process.platform === 'win32' ? 'python' : 'python3', [path.join(ROOT, 'kit', 'tools', 'build.py'), APP_ID], { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
         String(out).split('\n').filter(Boolean).forEach((ln) => log('info', 'build: ' + ln.trim()));
         return true;
     } catch (e) {
