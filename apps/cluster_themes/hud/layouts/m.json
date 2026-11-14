@@ -75,33 +75,33 @@
       ],
       "segbars": [
         {
-          "x": 1470,
-          "y": 269,
-          "w": 196,
+          "x": 1604,
+          "y": 229,
+          "w": 120,
           "h": 6,
           "max": 3,
           "signal": "setupLevel:engine"
         },
         {
-          "x": 1470,
-          "y": 321,
-          "w": 196,
+          "x": 1604,
+          "y": 281,
+          "w": 120,
           "h": 6,
           "max": 3,
           "signal": "setupLevel:chassis"
         },
         {
-          "x": 1470,
-          "y": 373,
-          "w": 128,
+          "x": 1604,
+          "y": 333,
+          "w": 80,
           "h": 6,
           "max": 2,
           "signal": "setupLevel:steering"
         },
         {
-          "x": 1470,
-          "y": 425,
-          "w": 128,
+          "x": 1604,
+          "y": 385,
+          "w": 80,
           "h": 6,
           "max": 2,
           "signal": "setupLevel:gearbox"
