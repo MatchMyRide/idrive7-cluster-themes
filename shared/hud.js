@@ -2303,6 +2303,17 @@ class HudApp {
             c.uniform(ref, 'u_color', rgba(color(t, w.color || 'bg')));
             c.uniform(ref, 'u_hole', this._hole(w));
             c.uniform(ref, 'u_holeR', [this._holeRadius(w)]); this._cuts(c, ref, w);
+        } else if (w.type === 'nline') {      // a neon polyline: "points" [[x, y], ...] in target px (up to 25), null breaks the line
+            const P = w.points.slice(0, 25), segs = [];
+            for (let i = 0; i + 1 < P.length; i++) if (P[i] && P[i + 1]) segs.push(P[i][0] - w.x, P[i][1] - w.y, P[i + 1][0] - w.x, P[i + 1][1] - w.y);   // null: a break in the line
+            const n = segs.length / 4;
+            while (segs.length < 96) segs.push(0);
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_n', [n]);
+            c.uniform(ref, 'u_glow', [isNum(w.glow) ? w.glow : 6]);
+            c.uniform(ref, 'u_seg', segs, { type: 'vec4' });
+            c.uniform(ref, 'u_line', rgb(color(t, w.line || 'neon')));
+            c.uniform(ref, 'u_line2', rgb(color(t, w.line2 || w.line || 'neon')));
         } else if (w.type === 'hframe') {     // Supercar's neon panels and lines (shaders.js hframe)
             c.uniform(ref, 'u_size', [w.w, w.h]);
             c.uniform(ref, 'u_mode', [w.mode === 'line' ? 1 : 0]);

@@ -42,6 +42,7 @@ const TYPES = {
     revarc: ['center', 'r', 'start', 'sweep'],
     scarc: ['center', 'r', 'start', 'sweep'],
     hframe: [],
+    nline: ['points'],
     ribbon: ['curve', 'span'],
     deco: [],
     nav: [],

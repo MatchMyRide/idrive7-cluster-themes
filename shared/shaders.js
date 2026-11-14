@@ -1677,4 +1677,33 @@ void main() {
 }
 `;
 
-module.exports = { hframe: HFRAME, scarc: SCARC, shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, atext: ATEXT, dial: DIAL, meter: METER, gmeter: GMETER, revarc: REVARC, tiles: TILES, ribbon: RIBBON, deco: DECO };
+const NLINE = `// A neon polyline (GLSL ES 1.00), Supercar's top frame: up to 24 segments u_seg[i] = (x0, y0, x1, y1) in layer px,
+// u_n of them used; a thin bright line with a soft glow, its colour running from u_line (left) to u_line2 (right).
+// Static: every uniform is set once.
+precision mediump float;
+varying vec2 v_uv;
+uniform vec2 u_size;
+uniform float u_n;
+uniform float u_glow;
+uniform vec4 u_seg[24];
+uniform vec3 u_line;
+uniform vec3 u_line2;
+
+void main() {
+    vec2 p = v_uv * u_size;
+    float d = 1e5;
+    for (int i = 0; i < 24; i++) {
+        if (float(i) >= u_n) break;
+        vec4 s = u_seg[i];
+        vec2 a = s.xy, ab = s.zw - s.xy;
+        float h = clamp(dot(p - a, ab) / dot(ab, ab), 0.0, 1.0);
+        d = min(d, length(p - a - ab * h));
+    }
+    vec3 lc = mix(u_line, u_line2, smoothstep(0.3, 0.8, v_uv.x));
+    float core = 1.0 - smoothstep(0.8, 1.8, d);
+    float a = clamp(core + exp(-d / u_glow) * 0.55, 0.0, 1.0);
+    gl_FragColor = vec4(mix(lc, vec3(1.0), core * 0.4), a);
+}
+`;
+
+module.exports = { nline: NLINE, hframe: HFRAME, scarc: SCARC, shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, atext: ATEXT, dial: DIAL, meter: METER, gmeter: GMETER, revarc: REVARC, tiles: TILES, ribbon: RIBBON, deco: DECO };
