@@ -127,7 +127,7 @@ const THEMES = {
         rev: { from: [236, 244, 255], to: [90, 175, 255] },
         bg: [0, 0, 0, 255], panel: [0, 0, 0, 255], line: [150, 170, 200, 255], head: [90, 175, 255, 255],
         ink: [12, 12, 14, 255], accent: [90, 175, 255, 255], well: [0, 0, 0, 255], hot: [255, 60, 50, 255],
-        frame: [110, 128, 156, 255], clear: [0, 0, 0, 0], pfill: [6, 14, 28, 150], band: [40, 52, 70, 255], warn: [255, 140, 0, 255], wfill: [0, 0, 0, 255],
+        frame: [110, 128, 156, 255], clear: [0, 0, 0, 0], pfill: [6, 14, 28, 150], band: [40, 52, 70, 255], warn: [255, 140, 0, 255], wfill: [0, 0, 0, 255], pin: [10, 26, 50, 175],
     },
     // Supercar (layout supercar.json): white rev arc going amber to red, cyan gear and labels on black.
     supercar: {
