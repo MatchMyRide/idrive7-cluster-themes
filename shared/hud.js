@@ -2353,7 +2353,7 @@ class HudApp {
             c.uniform(ref, 'u_fill', rgba(color(t, w.fill || 'pfill')));
             c.uniform(ref, 'u_line', rgb(color(t, w.line || 'neon')));
             c.uniform(ref, 'u_line2', rgb(color(t, w.line2 || w.line || 'neon')));
-            c.uniform(ref, 'u_circ', w.circle ? [w.circle[0] - w.x, w.circle[1] - w.y, w.circle[2]] : [0, 0, 0]);   // target px this._cuts(c, ref, w);
+            c.uniform(ref, 'u_circ', w.circle ? [w.circle[0] - w.x, w.circle[1] - w.y, w.circle[2]] : [0, 0, 0]); this._cuts(c, ref, w);   // circle in target px
         } else if (w.type === 'box') {
             c.uniform(ref, 'u_size', [w.w, w.h]);
             c.uniform(ref, 'u_fill', rgba(color(t, w.fill || 'panel')));
