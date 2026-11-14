@@ -21,7 +21,8 @@ let state = opt('state', 'showing'), target = opt('target', 'map'), busyLeft = N
 const log = (s) => console.log(new Date().toISOString().slice(11, 19) + ' fake-waze: ' + s);
 
 fs.mkdirSync(dir, { recursive: true });
-const sockPath = path.join(dir, 'ctl.sock'), statusPath = path.join(dir, 'status.json');
+// Windows: a named pipe (net can't listen on a file path there)
+const sockPath = process.platform === 'win32' ? '\\\\.\\pipe\\fake-waze-ctl' : path.join(dir, 'ctl.sock'), statusPath = path.join(dir, 'status.json');
 try { fs.unlinkSync(sockPath); } catch (e) { /* none */ }
 
 function writeStatus() {
