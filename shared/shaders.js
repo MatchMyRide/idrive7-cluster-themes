@@ -1750,7 +1750,7 @@ void main() {
     if (u_full > 0.5) {
         // the face: dark blue in the middle fading to black, a stepped ring inside the ticks
         if (dist < u_r + 6.0) c = vec4(mix(vec3(0.05, 0.09, 0.16), vec3(0.0), smoothstep(0.0, u_r, dist)), 1.0);
-        float step8 = floor(mod(ang / TAU * 24.0, 2.0));
+        float step8 = floor(mod(ang / TAU * 24.0 + 1.5, 2.0));   // 12 even teeth, one centred on top
         float rIn = u_r * 0.66 + step8 * 10.0;
         float inner = smoothstep(rIn - 1.0, rIn + 1.0, dist) * (1.0 - smoothstep(u_r * 0.74 + 8.0, u_r * 0.74 + 10.0, dist));
         c = mix(c, vec4(0.1, 0.13, 0.19, 1.0), inner * 0.9);
