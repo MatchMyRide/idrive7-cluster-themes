@@ -38,7 +38,7 @@
       "blocks": 28,
       "warnFrom": 5000,
       "tint": "tint",
-      "ring": 500
+      "ring": 0
     },
     {
       "id": "nl_bottom",
@@ -497,8 +497,8 @@
       "type": "icon",
       "icon": "tyre",
       "z": 5,
-      "x": 418,
-      "y": 150,
+      "x": 150,
+      "y": 148,
       "w": 30,
       "h": 24,
       "color": "accent",
@@ -508,7 +508,7 @@
       "type": "text",
       "z": 5,
       "id": "tp_head",
-      "x": 152,
+      "x": 188,
       "y": 152,
       "w": 200,
       "h": 20,
@@ -629,9 +629,9 @@
       "type": "text",
       "z": 5,
       "id": "pw_head",
-      "x": 1488,
+      "x": 1524,
       "y": 152,
-      "w": 280,
+      "w": 260,
       "h": 20,
       "text": "POWER / TORQUE",
       "font": "sc_label",
@@ -1070,6 +1070,18 @@
       "color": "hot",
       "align": "right",
       "conn": 2
+    },
+    {
+      "id": "ic_power",
+      "type": "icon",
+      "icon": "engine",
+      "z": 5,
+      "x": 1486,
+      "y": 148,
+      "w": 30,
+      "h": 24,
+      "color": "accent",
+      "conn": 3
     }
   ]
 }

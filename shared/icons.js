@@ -3,7 +3,8 @@
  * Small line icons, drawn here (no image files): straight RGBA for an image layer, w x h, in one colour.
  * Each icon is a distance function in a 0..1 box; coverage is anti-aliased over one pixel.
  *   gauge (engine), shock (chassis), wheel (steering), cog (gearbox), stack (the gear's shift program
- *   lines), therm (coolant), oilcan (oil), fuel (pump), tyre (a wheel seen from the side: ring, hub, tread notches).
+ *   lines), therm (coolant), oilcan (oil), fuel (pump), tyre (a wheel seen from the side: ring, hub, tread notches),
+ *   engine (the engine-block pictogram).
  */
 function seg(px, py, ax, ay, bx, by) {
     const pax = px - ax, pay = py - ay, bax = bx - ax, bay = by - ay;
@@ -37,6 +38,11 @@ const ICONS = {
         for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4 + Math.PI / 8; d = Math.min(d, seg(x, y, 0.5 + 0.42 * Math.sin(a), 0.5 - 0.42 * Math.cos(a), 0.5 + 0.49 * Math.sin(a), 0.5 - 0.49 * Math.cos(a)) - 0.04); }
         return d;
     },
+    // engine: the engine-block pictogram - the block, the oil cap on top, intake left, exhaust right (Supercar)
+    engine: (x, y) => Math.min(Math.abs(Math.max(Math.abs(x - 0.48) - 0.25, Math.abs(y - 0.58) - 0.2)) - 0.045,
+        seg(x, y, 0.36, 0.22, 0.6, 0.22) - 0.05, seg(x, y, 0.48, 0.22, 0.48, 0.38) - 0.045,
+        seg(x, y, 0.08, 0.58, 0.23, 0.58) - 0.045, seg(x, y, 0.08, 0.46, 0.08, 0.7) - 0.045,
+        seg(x, y, 0.73, 0.54, 0.9, 0.54) - 0.045, seg(x, y, 0.9, 0.42, 0.9, 0.72) - 0.045),
     oilcan: (x, y) => Math.min(seg(x, y, 0.2, 0.62, 0.6, 0.62) - 0.12, seg(x, y, 0.6, 0.58, 0.9, 0.44) - 0.04, disc(x, y, 0.92, 0.66, 0.05), seg(x, y, 0.3, 0.46, 0.3, 0.34) - 0.035, seg(x, y, 0.22, 0.34, 0.38, 0.34) - 0.04),
 };
 
