@@ -16,8 +16,11 @@ const HOOD = [
     [1000, 1], [1100, 2], [1200, 5], [1300, 10], [1400, 19], [1500, 37], [1600, 67], [1700, 84], [1800, 128], [1900, 196],
     [1920, 240],
 ];
-/** BMW draws a solid black box over our panel here (its gear slot): [x0, y0, x1, y1]. */
+/** BMW's gear slot: [x0, y0, x1, y1]. Thought to be painted over our panel (X3, Nov 5 2026), but on a G23 M440i
+ *  (Nov 14 2026) it shows only through see-through layouts (the calibration grid): opaque themes cover it, and BMW
+ *  moves the gear and drive mode into its bottom strip while a theme is up. BOX_OVER says which: false = under us. */
 const BLACK_BOX = [1406, 342, 1597, 419];
+const BOX_OVER = false;
 /** BMW's seat-belt warning light is drawn over us here: [x0, y0, x1, y1]. */
 const BELT = [587, 663, 626, 700];
 /** The part of the 800x480 HUD target seen through the windshield: BMW's own height-adjust frame (car photo Nov 7,
@@ -81,7 +84,7 @@ function check(widgets, target) {
                 const worst = under.reduce((a, b) => (b.d > a.d ? b : a));
                 out.push(id + ': ' + worst.what + ' ' + worst.d + ' px under the hood');
             }
-            if (overlaps(w, BLACK_BOX)) {
+            if (BOX_OVER && overlaps(w, BLACK_BOX)) {
                 out.push(id + ': overlaps BMW\'s gear box x' + BLACK_BOX[0] + '-' + BLACK_BOX[2] + ' y' + BLACK_BOX[1] + '-' + BLACK_BOX[3]);
             }
             if (overlaps(w, BELT)) {
@@ -103,4 +106,4 @@ function check(widgets, target) {
     return out;
 }
 
-module.exports = { HOOD, BLACK_BOX, BELT, HUD_WINDOW, HUD_BMW, CAMERA, hoodY, check };
+module.exports = { HOOD, BLACK_BOX, BOX_OVER, BELT, HUD_WINDOW, HUD_BMW, CAMERA, hoodY, check };
