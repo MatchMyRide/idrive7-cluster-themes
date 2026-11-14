@@ -41,6 +41,7 @@ const TYPES = {
     tiles: ['tiles'],
     revarc: ['center', 'r', 'start', 'sweep'],
     scarc: ['center', 'r', 'start', 'sweep'],
+    hframe: [],
     ribbon: ['curve', 'span'],
     deco: [],
     nav: [],

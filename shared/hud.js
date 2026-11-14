@@ -2185,6 +2185,8 @@ class HudApp {
             c.uniform(ref, 'u_blocks', [w.blocks || 0]);
             c.uniform(ref, 'u_warnAt', [isNum(w.warnFrom) ? w.warnFrom / max : 2]);
             c.uniform(ref, 'u_warn', rgb(color(t, 'warn')));
+            c.uniform(ref, 'u_tint', rgb(color(t, w.tint || 'fg')));
+            c.uniform(ref, 'u_ring', [w.ring || 0]);
             c.uniform(ref, 'u_fg', rgb(color(t, 'fg')));
             c.uniform(ref, 'u_hot', rgb(color(t, 'hot')));
             c.uniform(ref, 'u_flash', [0]);
@@ -2301,6 +2303,15 @@ class HudApp {
             c.uniform(ref, 'u_color', rgba(color(t, w.color || 'bg')));
             c.uniform(ref, 'u_hole', this._hole(w));
             c.uniform(ref, 'u_holeR', [this._holeRadius(w)]); this._cuts(c, ref, w);
+        } else if (w.type === 'hframe') {     // Supercar's neon panels and lines (shaders.js hframe)
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_mode', [w.mode === 'line' ? 1 : 0]);
+            c.uniform(ref, 'u_cut', [isNum(w.cut) ? w.cut : 22]);
+            c.uniform(ref, 'u_head', [w.head || 0]);
+            c.uniform(ref, 'u_glow', [isNum(w.glow) ? w.glow : 6]);
+            c.uniform(ref, 'u_fill', rgba(color(t, w.fill || 'pfill')));
+            c.uniform(ref, 'u_line', rgb(color(t, w.line || 'neon')));
+            c.uniform(ref, 'u_line2', rgb(color(t, w.line2 || w.line || 'neon')));
         } else if (w.type === 'box') {
             c.uniform(ref, 'u_size', [w.w, w.h]);
             c.uniform(ref, 'u_fill', rgba(color(t, w.fill || 'panel')));

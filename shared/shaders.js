@@ -1549,6 +1549,8 @@ uniform float u_hex;
 uniform float u_blocks;
 uniform float u_warnAt;   // blocks mode: from here to u_redAt the blocks are u_warn (orange)
 uniform vec3 u_warn;
+uniform vec3 u_tint;     // blocks mode: the lit tiles run from this (at 0 rpm) to u_fg
+uniform float u_ring;    // a red glow ring this far out from the centre (0 = none)
 uniform vec3 u_fg;
 uniform vec3 u_hot;
 const float TAU = 6.2831853;
@@ -1583,7 +1585,7 @@ void main() {
                 float fk = (floor(k) + 0.5) / u_blocks;
                 bool red = fk >= u_redAt, warn = !red && fk >= u_warnAt;
                 vec3 zone = red ? u_hot : u_warn;
-                vec3 base = red || warn ? zone * (on || u_flash > 0.5 ? 1.0 : 0.5) : (on ? (u_flash > 0.5 ? u_hot : u_fg) : vec3(0.36));
+                vec3 base = red || warn ? zone * (on || u_flash > 0.5 ? 1.0 : 0.5) : (on ? (u_flash > 0.5 ? u_hot : mix(u_tint, u_fg, smoothstep(0.0, 0.4, fk))) : vec3(0.36));
                 // a glossy tile: dark at the inner edge, bright towards the outer one, a lit rim on top, a sheen across
                 float across = 1.1 - 0.25 * fract(k);
                 float rad = 0.28 + 0.72 * t * t * (3.0 - 2.0 * t);
@@ -1623,8 +1625,56 @@ void main() {
         float dots = u_blocks > 0.5 ? 0.0 : 1.0 - smoothstep(1.4, 2.4, length(vec2(along, dist - rr)));
         c = mix(c, vec4(f >= u_redAt ? u_hot : u_fg, 0.9), dots * (1.0 - la));
     }
+    if (u_ring > 0.0 && f <= 1.0) {
+        float rd = abs(dist - u_ring), fade = smoothstep(0.0, 0.25, f) * smoothstep(1.0, 0.75, f);
+        float ring = ((1.0 - smoothstep(0.6, 1.6, rd)) + exp(-rd / 7.0) * 0.5) * fade;
+        c = mix(c, vec4(u_hot, 1.0), clamp(ring, 0.0, 1.0) * (1.0 - c.a * 0.5));
+    }
     gl_FragColor = c;
 }
 `;
 
-module.exports = { scarc: SCARC, shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, atext: ATEXT, dial: DIAL, meter: METER, gmeter: GMETER, revarc: REVARC, tiles: TILES, ribbon: RIBBON, deco: DECO };
+const HFRAME = `// Supercar's neon panels (GLSL ES 1.00). u_mode 0: a panel - chamfered corners (u_cut px), a dark fill fading
+// downwards, a thin bright outline with a soft glow round it, a header line u_head px from the top (0 = none) with a
+// short bright bar at its left. u_mode 1: a horizontal neon line across the layer's middle. The line's colour runs
+// from u_line (left) to u_line2 (right). Static: every uniform is set once.
+//   u_size layer px, u_mode, u_cut, u_head, u_glow px, u_fill rgba, u_line / u_line2 rgb
+precision mediump float;
+varying vec2 v_uv;
+uniform vec2 u_size;
+uniform float u_mode;
+uniform float u_cut;
+uniform float u_head;
+uniform float u_glow;
+uniform vec4 u_fill;
+uniform vec3 u_line;
+uniform vec3 u_line2;
+
+void main() {
+    vec2 px = v_uv * u_size;
+    vec3 lc = mix(u_line, u_line2, smoothstep(0.25, 0.85, v_uv.x));
+    if (u_mode > 0.5) {
+        float d = abs(px.y - u_size.y * 0.5);
+        float ends = smoothstep(0.0, 0.12, v_uv.x) * smoothstep(1.0, 0.88, v_uv.x);
+        float a = (1.0 - smoothstep(0.8, 1.8, d) + exp(-d / u_glow) * 0.55) * ends;
+        gl_FragColor = vec4(mix(lc, vec3(1.0), (1.0 - smoothstep(0.0, 0.9, d)) * 0.5), min(a, 1.0));
+        return;
+    }
+    vec2 m = vec2(u_glow + 2.0), b = u_size * 0.5 - m, p = px - u_size * 0.5;
+    vec2 q = abs(p) - b;
+    float box = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
+    float d = max(box, (abs(p.x) + abs(p.y) - (b.x + b.y - u_cut)) * 0.7071);
+    float inside = 1.0 - smoothstep(-0.5, 0.5, d);
+    vec4 c = vec4(u_fill.rgb, u_fill.a * inside * (1.0 - 0.55 * v_uv.y));
+    float line = 1.0 - smoothstep(0.7, 1.7, abs(d));
+    float glow = exp(-abs(d) / u_glow) * 0.6;
+    float hy = abs(px.y - (m.y + u_head));
+    float head = u_head > 0.0 ? (1.0 - smoothstep(0.5, 1.3, hy)) * inside * 0.7 : 0.0;
+    float bar = u_head > 0.0 ? step(hy, 2.0) * step(m.x + u_cut * 0.6, px.x) * step(px.x, m.x + u_cut * 0.6 + 40.0) : 0.0;
+    c = mix(c, vec4(lc, 1.0), clamp(max(glow, head), 0.0, 1.0));
+    c = mix(c, vec4(mix(lc, vec3(1.0), 0.35), 1.0), max(line, bar));
+    gl_FragColor = c;
+}
+`;
+
+module.exports = { hframe: HFRAME, scarc: SCARC, shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, atext: ATEXT, dial: DIAL, meter: METER, gmeter: GMETER, revarc: REVARC, tiles: TILES, ribbon: RIBBON, deco: DECO };
