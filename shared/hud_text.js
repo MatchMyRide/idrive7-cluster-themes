@@ -23,7 +23,7 @@ function loadFont(name) {
     if (!metrics || !metrics.glyphs || !metrics.alpha) throw new Error('font "' + name + '" is missing from hud/fonts');
     const alpha = Buffer.from(metrics.alpha, 'base64');
     if (alpha.length !== metrics.width * metrics.height) throw new Error('font "' + name + '": atlas size does not match');
-    const font = { width: metrics.width, alpha, metrics: { size: metrics.size, cellHeight: metrics.cellHeight, baseline: metrics.baseline, glyphs: metrics.glyphs } };
+    const font = { width: metrics.width, alpha, metrics: { size: metrics.size, cellHeight: metrics.cellHeight, baseline: metrics.baseline, glyphs: metrics.glyphs, lean: metrics.lean || 0 } };
     loadedFonts.set(name, font);
     return font;
 }
@@ -50,7 +50,9 @@ function mask(boxW, boxH, text, opts) {
     const spacing = opts.spacing || 0;
     const out = Buffer.alloc(boxW * boxH, 0);
     const width = measure(text, opts.font, spacing);
-    let pen = (opts.x || 0) + (opts.align === 'right' ? boxW - width : opts.align === 'center' ? Math.round((boxW - width) / 2) : 0);
+    // a slanted font's top leans 'lean' px past its advances: right and centred text keep that inside the box
+    const lean = font.metrics.lean || 0;
+    let pen = (opts.x || 0) + (opts.align === 'right' ? boxW - width - lean : opts.align === 'center' ? Math.round((boxW - width - lean) / 2) : 0);
     const offY = opts.offsetY || 0;
     for (const ch of String(text)) {
         const g = glyphOf(font, ch);

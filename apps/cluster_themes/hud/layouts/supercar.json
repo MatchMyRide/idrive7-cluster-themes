@@ -513,7 +513,7 @@
       "y": 446,
       "w": 200,
       "h": 50,
-      "text": "{{gearsDown}} ",
+      "text": "{{gearsDown}}",
       "font": "sc_gsm",
       "color": "dim",
       "align": "right",

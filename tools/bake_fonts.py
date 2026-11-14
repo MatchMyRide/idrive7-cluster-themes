@@ -176,7 +176,7 @@ def bake(out, name, file, size, chars, stroke=0, weight=None, subs=None, tuck=''
         gx, gy = placed[c]
         atlas.paste(img, (gx, gy))
         glyphs[c] = {'x': gx, 'y': gy, 'w': img.width, 'h': img.height, 'ox': ox, 'advance': adv}
-    meta = {'source': file, 'size': size, 'cellHeight': height, 'baseline': PAD - top, 'glyphs': glyphs,
+    meta = {'source': file, 'size': size, 'cellHeight': height, 'baseline': PAD - top, 'glyphs': glyphs, 'lean': int(round(height * slant)),
             'width': ATLAS_W, 'height': atlas_h, 'alpha': base64.b64encode(atlas.tobytes()).decode('ascii')}
     with open(os.path.join(out, name + '.json'), 'w') as f:
         json.dump(meta, f, separators=(',', ':'), ensure_ascii=False)
