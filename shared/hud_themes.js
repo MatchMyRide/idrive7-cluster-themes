@@ -118,6 +118,16 @@ const THEMES = {
         ink: [12, 12, 14, 255], accent: [80, 230, 110, 255], well: [0, 0, 0, 255], go: [80, 230, 110, 255],
     },
     // Rally (layout rally.json): a sweeping rev arc over a huge gear, a G-meter, rally yellow.
+    // Supercar (layout supercar.json): white rev arc going amber to red, cyan gear and labels on black.
+    supercar: {
+        name: 'Supercar',
+        fg: [240, 244, 248, 255], dim: [150, 158, 170, 255], track: [255, 255, 255, 30], arc: [0, 200, 255, 255],
+        glow: 0, stripe: false,
+        bar: { low: [235, 240, 245], mid: [255, 170, 0], high: [255, 40, 40], midAt: 'shift' },
+        rev: { from: [235, 240, 245], to: [0, 200, 255] },
+        bg: [0, 0, 0, 255], panel: [0, 0, 0, 255], line: [205, 210, 218, 255], head: [0, 200, 255, 255],
+        ink: [12, 12, 14, 255], accent: [0, 200, 255, 255], well: [0, 0, 0, 255],
+    },
     rally: {
         name: 'Rally',
         fg: [246, 246, 246, 255], dim: [160, 164, 170, 255], track: [255, 255, 255, 34], arc: [255, 210, 0, 255],

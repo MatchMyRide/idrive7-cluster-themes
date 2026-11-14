@@ -18,7 +18,7 @@ moves the pen. Digits get one shared advance (tabular), so a changing number
 doesn't shift sideways.
 """
 import base64, json, os
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFont
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, 'fonts-src')
@@ -51,6 +51,13 @@ CLUSTER_FONTS = [
     ('scale', 'BarlowCondensed-SemiBold.ttf', 30, DIGITS),
     ('badge', 'BarlowCondensed-SemiBold.ttf', 30, UPPER + LOWER + DIGITS + ' -'),   # the model badge (shared/badges.js)
     # M: the wide squared numbers (Michroma, SIL OFL) and Barlow for the small print
+    # Supercar: Orbitron Black, slanted like an italic; the gear and the arc's numbers hollow (outline)
+    ('sc_gear', 'Orbitron[wght].ttf', 290, 'PRNDSM-' + DIGITS, 0, 'Black', {'0': 'O'}, '', 0.2, 7),
+    ('sc_gsm', 'Orbitron[wght].ttf', 64, 'PRNDSMA-' + DIGITS, 0, 'Bold', {'0': 'O'}, '', 0.2, 0),
+    ('sc_num', 'Orbitron[wght].ttf', 46, DIGITS, 0, 'Black', {'0': 'O'}, '', 0.2, 2),
+    ('sc_speed', 'Orbitron[wght].ttf', 104, DIGITS + '-', 0, 'Black', {'0': 'O'}, '', 0.2, 0),
+    ('sc_val', 'Orbitron[wght].ttf', 34, DIGITS + '.:-+', 0, 'Bold', {'0': 'O'}, '', 0.2, 0),
+    ('sc_label', 'Orbitron[wght].ttf', 18, UPPER + DIGITS + '/°%.:- ', 0, 'Bold', {'0': 'O'}, '', 0.2, 0),
     ('m_num', 'Orbitron[wght].ttf', 36, DIGITS, 0, 'Black', {'0': 'O'}),
     ('m_gear', 'Orbitron[wght].ttf', 125, 'PRNDSM-' + DIGITS, 3, 'Black', {'0': 'O'}),
     ('m_speed', 'Orbitron[wght].ttf', 78, DIGITS + '-', 3, 'Black', {'0': 'O'}),
@@ -106,18 +113,21 @@ PAD = 2
 ATLAS_W = 1024
 
 
-def bake(out, name, file, size, chars, stroke=0, weight=None, subs=None, tuck=''):
+def bake(out, name, file, size, chars, stroke=0, weight=None, subs=None, tuck='', slant=0.0, outline=0):
     """stroke: px of extra weight round every glyph (Michroma has one weight). weight: a named instance of a
     variable font (Orbitron: Regular .. Black), for the M theme's squared BMW-style gear, speed and numbers.
     subs: {char: glyph drawn for it} (Orbitron's zero is slashed; the M8's is plain, so its O stands in).
     tuck: characters added to a font after layouts were built on its cell height (° on value / y_val, Nov 7 2026):
-    they don't count towards the cell, and one that rises above it is drawn lower so its top meets the cell's."""
+    they don't count towards the cell, and one that rises above it is drawn lower so its top meets the cell's.
+    slant: x per y px of shear (italic, top to the right; Supercar). outline: px; the glyph is drawn hollow, a ring of
+    that width round the shape (Supercar's outlined gear and numbers)."""
     font = ImageFont.truetype(os.path.join(SRC, file), size)
     if weight: font.set_variation_by_name(weight)
     subs = subs or {}
     glyph = lambda c: subs.get(c, c)
     ink = [c for c in chars if c != ' ']
-    boxes = {c: font.getbbox(glyph(c), anchor='ls', stroke_width=stroke) for c in ink}
+    fat = stroke + outline
+    boxes = {c: font.getbbox(glyph(c), anchor='ls', stroke_width=fat) for c in ink}
     top = min(b[1] for c, b in boxes.items() if c not in tuck)
     bottom = max(b[3] for c, b in boxes.items() if c not in tuck)
     drop = {c: max(0, top - boxes[c][1]) for c in tuck if c in boxes}
@@ -131,9 +141,17 @@ def bake(out, name, file, size, chars, stroke=0, weight=None, subs=None, tuck=''
             cells.append((c, None, 0, round(adv if adv else size * 0.25)))
             continue
         l, _, r, _ = boxes[c]
-        w = r - l + 2 * PAD
+        lean = int(round(height * slant)) + (1 if slant else 0)
+        w = r - l + 2 * PAD + lean
         img = Image.new('L', (w, height), 0)
-        ImageDraw.Draw(img).text((PAD - l, PAD - top + drop.get(c, 0)), glyph(c), font=font, fill=255, anchor='ls', stroke_width=stroke, stroke_fill=255)
+        at = (PAD - l, PAD - top + drop.get(c, 0))
+        ImageDraw.Draw(img).text(at, glyph(c), font=font, fill=255, anchor='ls', stroke_width=fat, stroke_fill=255)
+        if outline:
+            inner = Image.new('L', (w, height), 0)
+            ImageDraw.Draw(inner).text(at, glyph(c), font=font, fill=255, anchor='ls', stroke_width=stroke, stroke_fill=255)
+            img = ImageChops.subtract(img, inner)
+        if slant:
+            img = img.transform((w, height), Image.AFFINE, (1, slant, -slant * height, 0, 1, 0), resample=Image.BICUBIC)
         shift = (tab - adv) / 2 if c in DIGITS else 0
         cells.append((c, img, round(l - PAD + shift), round(tab if c in DIGITS else adv)))
 
@@ -170,5 +188,7 @@ if __name__ == '__main__':
         out = os.path.join(APPS, app, 'hud', 'fonts')
         os.makedirs(out, exist_ok=True)
         print(app)
+        only = [n for n in os.environ.get('BAKE_ONLY', '').split(',') if n]
         for spec in FONTS[app]:
-            bake(out, *spec)
+            if not only or spec[0] in only:
+                bake(out, *spec)

@@ -1526,4 +1526,74 @@ void main() {
 }
 `;
 
-module.exports = { shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, atext: ATEXT, dial: DIAL, meter: METER, gmeter: GMETER, revarc: REVARC, tiles: TILES, ribbon: RIBBON, deco: DECO };
+const SCARC = `// The Supercar theme's rev arc (GLSL ES 1.00), one layer: a dotted outer ring, a perforated band that lights up to the
+// revs (red past u_redAt) with a red needle at the revs, the band's inner line with ticks (u_majors intervals, a
+// half tick between), and a faint honeycomb inside the arc (u_hex 1). Angles in radians clockwise from 12 o'clock.
+//   u_size layer px, u_center layer px, u_r outer radius, u_band width, u_start / u_sweep, u_value 0..1,
+//   u_redAt 0..1, u_majors count, u_flash 1 = at the shift point (the lit band goes red), u_fg / u_hot rgb
+precision mediump float;
+varying vec2 v_uv;
+uniform vec2 u_size;
+uniform vec2 u_center;
+uniform float u_r;
+uniform float u_band;
+uniform float u_start;
+uniform float u_sweep;
+uniform float u_value;
+uniform float u_redAt;
+uniform float u_majors;
+uniform float u_flash;
+uniform float u_hex;
+uniform vec3 u_fg;
+uniform vec3 u_hot;
+const float TAU = 6.2831853;
+
+float hexEdge(vec2 p, float s) {
+    p /= s;
+    vec2 r = vec2(1.0, 1.7320508), h = r * 0.5;
+    vec2 a = mod(p, r) - h, b = mod(p - h, r) - h;
+    vec2 g = abs(dot(a, a) < dot(b, b) ? a : b);
+    return (0.5 - max(dot(g, vec2(0.5, 0.8660254)), g.x)) * s;
+}
+
+void main() {
+    vec2 p = v_uv * u_size, d = p - u_center;
+    float dist = length(d);
+    float ang = atan(d.x, -d.y);
+    if (ang < 0.0) ang += TAU;
+    float rel = ang - u_start;
+    if (rel < 0.0) rel += TAU;
+    float f = rel / u_sweep;
+    float rIn = u_r - u_band;
+    vec4 c = vec4(0.0);
+    if (u_hex > 0.5 && dist < rIn - 36.0) c = vec4(u_fg, 0.07 * (1.0 - smoothstep(0.0, 1.6, hexEdge(p, 30.0))));
+    if (f <= 1.0) {
+        float px = u_sweep * dist;                       // px along the arc per unit of f, here
+        if (dist >= rIn && dist <= u_r) {
+            float pitch = 7.0, v = (dist - rIn) / pitch;
+            vec2 cell = vec2(fract(f * px / pitch + 0.5 * mod(floor(v), 2.0)) - 0.5, fract(v) - 0.5);
+            float holes = 1.0 - smoothstep(0.2, 0.34, length(cell));
+            bool lit = f <= u_value;
+            vec3 col = (f >= u_redAt || (lit && u_flash > 0.5)) ? u_hot : u_fg;
+            c = vec4(col, holes * (lit ? 0.6 : 0.17) + (lit ? 0.08 : 0.03));
+            float nd = abs(f - u_value) * px;
+            float needle = 1.0 - smoothstep(2.0, 3.5, nd);
+            float glow = (1.0 - smoothstep(0.0, 26.0, nd)) * 0.4 * step(f, u_value);
+            c = mix(c, vec4(u_hot, 1.0), max(needle, glow));
+        }
+        float q = f * u_majors * 2.0, tq = abs(fract(q + 0.5) - 0.5) / (u_majors * 2.0) * px;
+        float tl = mod(floor(q + 0.5), 2.0) < 0.5 ? 18.0 : 9.0;
+        float tick = (1.0 - smoothstep(1.2, 2.2, tq)) * step(rIn - tl, dist) * step(dist, rIn);
+        float line = 1.0 - smoothstep(1.0, 2.0, abs(dist - rIn));
+        float la = max(line, tick);
+        c = mix(c, vec4(f >= u_redAt ? u_hot : u_fg, 1.0), la);
+        float rr = u_r + 9.0, n = floor(u_sweep * rr / 16.0);
+        float along = (fract(f * n) - 0.5) * u_sweep * rr / n;
+        float dots = 1.0 - smoothstep(1.4, 2.4, length(vec2(along, dist - rr)));
+        c = mix(c, vec4(f >= u_redAt ? u_hot : u_fg, 0.9), dots * (1.0 - la));
+    }
+    gl_FragColor = c;
+}
+`;
+
+module.exports = { scarc: SCARC, shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, atext: ATEXT, dial: DIAL, meter: METER, gmeter: GMETER, revarc: REVARC, tiles: TILES, ribbon: RIBBON, deco: DECO };

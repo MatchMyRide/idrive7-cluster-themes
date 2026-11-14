@@ -328,7 +328,7 @@ const TILE_BAR = {
 const TILE_MAX = 14;       // half a flash: red, then the normal colour
 // widgets that show the shift cue (the reaction time is learned only while one of them is drawn)
 const ROAD_DASH_M = 12;            // the Sport road: metres per dash and gap (shaders.js sdash u_road)
-const CUE_TYPES = { lights: true, shiftbar: true, revbar: true, revarc: true, ribbon: true, mtach: true, dial: true };
+const CUE_TYPES = { scarc: true, lights: true, shiftbar: true, revbar: true, revarc: true, ribbon: true, mtach: true, dial: true };
 // the shift-light test (page.js Alerts): rpm climbs from TEST_FROM to just past the shift point, then holds
 const TEST_FROM = 1500, TEST_CLIMB_MS = 2500, TEST_HOLD_MS = 1200;
 // night colours (Cluster Themes "nightDim"): after sunset the theme's whites and greys go to this brightness
@@ -1735,6 +1735,14 @@ class HudApp {
                 const d = this.car.data();
                 return d.stage === 'D' || (!d.stage && isNum(d.gear) && d.gear > 0) ? this._program(d) : (d.stage || '-');
             }
+            case 'gearPrev': case 'gearNext': case 'gearMode': {   // Supercar: the gears either side, A (automatic) / M
+                const d = this.car.data(), g = d.gear;
+                const driving = (d.stage === 'D' || (!d.stage && isNum(g))) && isNum(g) && g > 0;
+                if (!driving) return '';
+                if (tok === 'gearMode') return (this.program || d.program) === 'M' ? 'M' : 'A';
+                const n = tok === 'gearPrev' ? g - 1 : g + 1;
+                return n >= 1 && n <= 8 ? String(n) : '';
+            }
             case 'gearInD': {        // the gear number while driving, else nothing (the M "2D")
                 const d = this.car.data();
                 return (d.stage === 'D' || (!d.stage && isNum(d.gear))) && isNum(d.gear) && d.gear > 0 ? String(d.gear) : '';
@@ -2153,6 +2161,21 @@ class HudApp {
             c.uniform(ref, 'u_trail', new Array(32).fill(0), { type: 'vec4' });
             x.gEnv = this._gEnvAsset(x);
             if (x.gEnv) c.bind(ref, 'u_env', x.gEnv);
+        } else if (w.type === 'scarc') {
+            const max = this._barMax(), red = this.setting('redline');
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_center', w.center);
+            c.uniform(ref, 'u_r', [w.r]);
+            c.uniform(ref, 'u_band', [w.band || 46]);
+            c.uniform(ref, 'u_start', [w.start * Math.PI / 180]);
+            c.uniform(ref, 'u_sweep', [w.sweep * Math.PI / 180]);
+            c.uniform(ref, 'u_redAt', [Math.min(1, (red - 1000) / max)]);
+            c.uniform(ref, 'u_majors', [max / 1000]);
+            c.uniform(ref, 'u_hex', [w.hex === false ? 0 : 1]);
+            c.uniform(ref, 'u_fg', rgb(color(t, 'fg')));
+            c.uniform(ref, 'u_hot', rgb(color(t, 'hot')));
+            c.uniform(ref, 'u_flash', [0]);
+            c.uniform(ref, 'u_value', [0]);
         } else if (w.type === 'revarc') {
             const max = this._barMax(), red = this.setting('redline');
             const midAt = t.bar.midAt === 'shift' ? (red - 1500) / max : t.bar.midAt;
@@ -2524,7 +2547,7 @@ class HudApp {
             x.last = key;
             x.c.uniform(x.ref, 'u_value', [q]);
             x.c.uniform(x.ref, 'u_flash', [this.flash ? 1 : 0]);
-        } else if (w.type === 'shiftbar' || w.type === 'revarc') {
+        } else if (w.type === 'shiftbar' || w.type === 'revarc' || w.type === 'scarc') {
             const rpm = this._raw('rpm');
             const segs = w.segments || (w.type === 'revarc' ? 30 : 40);
             const v = isNum(rpm) ? Math.min(1, Math.max(0, rpm / this._barMax())) : 0;
