@@ -1689,6 +1689,11 @@ class HudApp {
                 return (n > 0 ? '+' : '') + n;
             }
             case 'u:torque': return us ? 'lb-ft' : 'Nm';
+            case 'powerPS': {        // metric horsepower (PS) from the crank torque and rpm
+                const d = this.car.data(), rpm = this._raw('rpm');
+                if (!isNum(d.torque) || !isNum(rpm)) return '--';
+                return String(Math.round(Math.max(0, d.torque) * rpm / 9549 * 1.35962));
+            }
             case 'power': {          // kW from the crank torque and rpm; hp in US units
                 const d = this.car.data(), rpm = this._raw('rpm');
                 if (!isNum(d.torque) || !isNum(rpm)) return '--';
@@ -2187,6 +2192,7 @@ class HudApp {
             c.uniform(ref, 'u_warn', rgb(color(t, 'warn')));
             c.uniform(ref, 'u_tint', rgb(color(t, w.tint || 'fg')));
             c.uniform(ref, 'u_ring', [w.ring || 0]);
+            c.uniform(ref, 'u_ncore', rgb(color(t, w.needleCore || 'fg')));
             c.uniform(ref, 'u_fg', rgb(color(t, 'fg')));
             c.uniform(ref, 'u_hot', rgb(color(t, 'hot')));
             c.uniform(ref, 'u_flash', [0]);

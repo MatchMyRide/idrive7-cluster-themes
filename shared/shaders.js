@@ -1550,7 +1550,8 @@ uniform float u_blocks;
 uniform float u_warnAt;   // blocks mode: from here to u_redAt the blocks are u_warn (orange)
 uniform vec3 u_warn;
 uniform vec3 u_tint;     // blocks mode: the lit tiles run from this (at 0 rpm) to u_fg
-uniform float u_ring;    // a red glow ring this far out from the centre (0 = none)
+uniform float u_ring;
+uniform vec3 u_ncore;    // blocks mode: the needle's core (its rim is u_hot)    // a red glow ring this far out from the centre (0 = none)
 uniform vec3 u_fg;
 uniform vec3 u_hot;
 const float TAU = 6.2831853;
@@ -1611,8 +1612,8 @@ void main() {
             float nd = abs(f - u_value) * px;
             float shadow = (1.0 - smoothstep(6.0, 9.0, nd)) * 0.7;
             c = mix(c, vec4(0.0, 0.0, 0.0, 1.0), shadow);
-            c = mix(c, vec4(u_hot, 1.0), 1.0 - smoothstep(4.0, 5.5, nd));
-            c = mix(c, vec4(1.0, 1.0, 1.0, 1.0), 1.0 - smoothstep(1.5, 2.5, nd));
+            c = mix(c, vec4(u_hot, 1.0), clamp(1.0 - smoothstep(4.0, 5.5, nd) + exp(-nd / 9.0) * 0.85, 0.0, 1.0));   // red rim, glowing
+            c = mix(c, vec4(u_ncore, 1.0), 1.0 - smoothstep(1.5, 2.5, nd));
         }
         float q = f * u_majors * 2.0, tq = abs(fract(q + 0.5) - 0.5) / (u_majors * 2.0) * px;
         float tl = mod(floor(q + 0.5), 2.0) < 0.5 ? 18.0 : 9.0;
