@@ -3,7 +3,7 @@
   "name": "Supercar",
   "packWaste": 3,
   "theme": "supercar",
-  "_about": "Supercar cluster after an Italian supercar dash in its track view: a wide arc of thick shaded blocks lit to the revs (red zone red) with a red needle and the numbers on its inner line, a big hollow red italic gear with P R N and the next gears up beside it, the speed in red bottom right, hatched horizontal bars for oil, gear oil, fuel and water at the sides. The arc stays under the driver camera.",
+  "_about": "Supercar cluster after an Italian supercar dash in its track view: a wide arc of thick shaded blocks lit to the revs (red zone red) with a red needle and the numbers on its inner line, a big hollow red italic gear with the next gears up beside it, the speed in red bottom right, hatched horizontal bars for oil, gear oil, fuel and water at the sides. The arc stays under the driver camera.",
   "widgets": [
     {
       "id": "bg",
@@ -269,20 +269,6 @@
       "font": "sc_label",
       "color": "hot",
       "align": "left"
-    },
-    {
-      "type": "text",
-      "z": 5,
-      "id": "prn",
-      "x": 600,
-      "y": 446,
-      "w": 220,
-      "h": 50,
-      "text": "P R N",
-      "font": "sc_gsm",
-      "color": "dim",
-      "align": "right",
-      "conn": 1
     },
     {
       "type": "text",
