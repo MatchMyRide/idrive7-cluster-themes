@@ -133,7 +133,7 @@
         ]
       ],
       "glow": 7,
-      "line": "neon",
+      "line": "neonRed",
       "line2": "neonRed",
       "conn": 2
     },
@@ -165,8 +165,8 @@
       "head": 34,
       "glow": 6,
       "fill": "pfill",
-      "line": "neon",
-      "line2": "neon",
+      "line": "neonRed",
+      "line2": "neonRed",
       "conn": 3
     },
     {
@@ -182,7 +182,7 @@
       "head": 34,
       "glow": 6,
       "fill": "pfill",
-      "line": "neon",
+      "line": "neonRed",
       "line2": "neonRed",
       "conn": 3
     },
@@ -199,8 +199,8 @@
       "head": 0,
       "glow": 6,
       "fill": "pfill",
-      "line": "neon",
-      "line2": "neon",
+      "line": "neonRed",
+      "line2": "neonRed",
       "conn": 1
     },
     {
@@ -216,7 +216,7 @@
       "head": 0,
       "glow": 6,
       "fill": "pfill",
-      "line": "neon",
+      "line": "neonRed",
       "line2": "neonRed",
       "conn": 1
     },
