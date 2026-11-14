@@ -681,18 +681,21 @@ class Page {
     drawPicker(cv, bottom) {
         const p = this.picker, s = this.item(p.key), opts = s.type === 'number' ? (s.steps || []).map((v) => [v, null]) : s.options || [];
         cv.fillRect(0, 36, W, bottom + 20, '#000000b0');
-        const w = 620, rh = 58, h = 76 + opts.length * rh, x = (W - w) / 2, y = Math.max(52, (bottom + 44 - h) / 2);
+        // a long list (the theme row's 15 layouts) can't scroll: it goes into as many columns as it needs to fit
+        const rh = 58, perCol = Math.max(1, Math.floor((bottom - 52 - 76) / rh)), cols = Math.ceil(opts.length / perCol);
+        const colW = cols > 1 ? Math.min(400, Math.floor((W - 80) / cols)) : 620, w = colW * cols;
+        const h = 76 + Math.min(opts.length, perCol) * rh, x = (W - w) / 2, y = Math.max(52, (bottom + 44 - h) / 2);
         cv.card(x, y, w, h, 18, [[0, '#18233a'], [1, '#0c111b']]);
         cv.strokeRoundRect(x, y, w, h, 18, 1, A(C.blueHi, 0.3));
         cv.text(p.title.toUpperCase(), x + 26, y + 42, 15, C.label, { font: 'bold', spacing: 2.4, literal: true });
         const v = this.get(p.key);
         opts.forEach((o, i) => {
-            const ry = y + 60 + i * rh, sel = o[0] === v;
-            if (sel) cv.roundRect(x + 12, ry, w - 24, rh - 6, 12, A(C.blue, 0.35));
+            const cx = x + Math.floor(i / perCol) * colW, ry = y + 60 + (i % perCol) * rh, sel = o[0] === v;
+            if (sel) cv.roundRect(cx + 12, ry, colW - 24, rh - 6, 12, A(C.blue, 0.35));
             const text = p.fmt ? p.fmt(o[0]) : o[1] !== null ? o[1] : fmtInt(o[0]) + ' rpm';
-            cv.text(text, x + 30, ry + 34, 20, sel ? '#ffffff' : C.text, { font: sel ? 'bold' : 'label', literal: true });
-            if (sel) check(cv, x + w - 50, ry + 26, '#ffffff');
-            cv.target(x + 12, ry, w - 24, rh - 6, () => {
+            cv.text(text, cx + 30, ry + 34, 20, sel ? '#ffffff' : C.text, { font: sel ? 'bold' : 'label', literal: true });
+            if (sel) check(cv, cx + colW - 50, ry + 26, '#ffffff');
+            cv.target(cx + 12, ry, colW - 24, rh - 6, () => {
                 this.picker = null;
                 if (LOOK_KEYS.indexOf(p.key) >= 0) this.chooseLayout(p.key, o[0]); else this.set(p.key, o[0]);
             }, 'pick:' + p.key + ':' + o[0], 12);
