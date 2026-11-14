@@ -1573,7 +1573,7 @@ void main() {
     float f = rel / u_sweep;
     float rIn = u_r - u_band;
     vec4 c = vec4(0.0);
-    if (u_hex > 0.5 && dist < rIn - 36.0) c = vec4(u_fg, 0.07 * (1.0 - smoothstep(0.0, 1.6, hexEdge(p, 30.0))));
+    if (u_hex > 0.5 && dist < rIn - 36.0) c = vec4(u_fg, 0.14 * (1.0 - smoothstep(0.0, 1.6, hexEdge(p, 30.0))));
     if (f <= 1.0) {
         float px = u_sweep * dist;                       // px along the arc per unit of f, here
         if (dist >= rIn && dist <= u_r) {
