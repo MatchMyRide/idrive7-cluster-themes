@@ -1735,6 +1735,11 @@ class HudApp {
                 const d = this.car.data();
                 return d.stage === 'D' || (!d.stage && isNum(d.gear) && d.gear > 0) ? this._program(d) : (d.stage || '-');
             }
+            case 'gearsDown': {    // Supercar's gear strip: the three gears below the one engaged (in 5: 2 3 4)
+                const d = this.car.data(), g = isNum(d.gear) && d.gear > 0 && !/[PRN]/.test(d.stage || '') ? d.gear : 0, out = [];
+                for (let n = Math.max(1, g - 3); n < g; n++) out.push(n);
+                return out.join(' ');
+            }
             case 'gearsUp': {      // Supercar's gear band: the next three gears up (in P / R / N: 1 to 3)
                 const d = this.car.data(), g = isNum(d.gear) && d.gear > 0 && !/[PRN]/.test(d.stage || '') ? d.gear : 0, out = [];
                 for (let n = g + 1; n <= Math.min(8, g + 3); n++) out.push(n);
