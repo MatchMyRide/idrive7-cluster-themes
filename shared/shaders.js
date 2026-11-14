@@ -1653,7 +1653,13 @@ uniform float u_glow;
 uniform vec4 u_fill;
 uniform vec3 u_line;
 uniform vec3 u_line2;
-uniform vec3 u_circ;     // panel: a round cut-out x, y, r in layer px (r 0 = none): the edge then follows the circle
+uniform vec3 u_circ;
+uniform vec4 u_cut0;      // BMW content kept visible (visible.KEEP): see-through rects x, y, w, h layer px
+uniform vec4 u_cut1;
+float cutA(vec4 r) {
+    vec2 d = abs(v_uv * u_size - r.xy - r.zw * 0.5) - r.zw * 0.5;
+    return r.z > 0.0 ? clamp(max(d.x, d.y) + 0.5, 0.0, 1.0) : 1.0;
+}     // panel: a round cut-out x, y, r in layer px (r 0 = none): the edge then follows the circle
 
 void main() {
     vec2 px = v_uv * u_size;
@@ -1662,7 +1668,7 @@ void main() {
         float d = abs(px.y - u_size.y * 0.5);
         float ends = smoothstep(0.0, 0.12, v_uv.x) * smoothstep(1.0, 0.88, v_uv.x);
         float a = (1.0 - smoothstep(0.8, 1.8, d) + exp(-d / u_glow) * 0.55) * ends;
-        gl_FragColor = vec4(mix(lc, vec3(1.0), (1.0 - smoothstep(0.0, 0.9, d)) * 0.5), min(a, 1.0));
+        gl_FragColor = vec4(mix(lc, vec3(1.0), (1.0 - smoothstep(0.0, 0.9, d)) * 0.5), min(a, 1.0) * cutA(u_cut0) * cutA(u_cut1));
         return;
     }
     vec2 m = vec2(u_glow + 2.0), b = u_size * 0.5 - m, p = px - u_size * 0.5;
@@ -1679,6 +1685,7 @@ void main() {
     float bar = u_head > 0.0 ? step(hy, 2.0) * step(m.x + u_cut * 0.6, px.x) * step(px.x, m.x + u_cut * 0.6 + 40.0) : 0.0;
     c = mix(c, vec4(lc, 1.0), clamp(max(glow, head), 0.0, 1.0));
     c = mix(c, vec4(mix(lc, vec3(1.0), 0.35), 1.0), max(line, bar));
+    c.a *= cutA(u_cut0) * cutA(u_cut1);
     gl_FragColor = c;
 }
 `;
