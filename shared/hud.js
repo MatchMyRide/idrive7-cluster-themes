@@ -54,7 +54,8 @@
  *   revbar    effect layer; shaders.js revbar, the G20-style slanted rev bar (Redline layout):
  *             "barH" bar height, "top" room for the marks above it, "slant" px, "over" rpm past the
  *             redline's thousand the scale runs to (1000: a 7000 redline gives 0..8)
- *   lights    effect layer; shaders.js lights, shift lights filling from "from" rpm (3000) up to the shift point
+ *   lights    effect layer; shaders.js lights, shift lights filling from "from" rpm (3000) up to the shift point;
+ *             "mirror" (gap px) makes two mirrored wings that fill from the outer ends in towards the middle
  *   badge     image layer; a rounded tag with text: "tone" verdict (the last shift's grade colour) or cold
  *   fill      effect layer; a solid colour (role "color", default "bg") over the whole widget, with an
  *             optional see-through "hole": [x, y, w, h] in target px, cut only while the bool setting
@@ -631,6 +632,8 @@ class HudApp {
      * towards the camera. The empty middle as { s, e } px from the widget's left; null when off or not crossing it.
      */
     _wings(w) {
+        // "mirror": gap px in the middle: always two mirrored wings filling from the outer ends in (a shift light under the camera)
+        if (isNum(w.mirror) && w.mirror > 0) return { s: Math.round((w.w - w.mirror) / 2), e: Math.round((w.w + w.mirror) / 2) };
         const C = visible.CAMERA;
         if (!this._cameraOn() || !(w.y < C[3] && w.x < C[0] && w.x + w.w > C[2])) return null;
         return { s: C[0] - w.x, e: C[2] - w.x };

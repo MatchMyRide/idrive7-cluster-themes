@@ -327,6 +327,22 @@
       "toggle": "mapUp"
     },
     {
+      "id": "shift_lights",
+      "type": "lights",
+      "z": 2,
+      "x": 770,
+      "y": 120,
+      "w": 380,
+      "h": 22,
+      "count": 16,
+      "tail": 0,
+      "round": false,
+      "off": 0.12,
+      "from": 3000,
+      "mirror": 12,
+      "toggle": "!mapUp"
+    },
+    {
       "id": "nl0",
       "type": "text",
       "z": 5,
