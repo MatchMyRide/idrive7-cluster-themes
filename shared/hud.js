@@ -2324,6 +2324,12 @@ class HudApp {
             c.uniform(ref, 'u_fg', rgb(color(t, 'fg')));
             c.uniform(ref, 'u_glow', rgb(color(t, w.glow || 'accent')));
             c.uniform(ref, 'u_hot', rgb(color(t, 'hot')));
+            const lmax = rpm ? max : w.max - w.min;
+            c.uniform(ref, 'u_leds', [w.leds || 0]);
+            c.uniform(ref, 'u_ledWarn', [isNum(w.ledWarn) ? w.ledWarn / lmax : 2]);
+            c.uniform(ref, 'u_ledRed', [isNum(w.ledRed) ? w.ledRed / lmax : 2]);
+            c.uniform(ref, 'u_warn', rgb(color(t, 'warn')));
+            c.uniform(ref, 'u_flash', [0]);
             c.uniform(ref, 'u_value', [0]);
         } else if (w.type === 'nline') {      // a neon polyline: "points" [[x, y], ...] in target px (up to 25), null breaks the line
             const P = w.points.slice(0, 25), segs = [];
@@ -2608,9 +2614,12 @@ class HudApp {
             const rpm = w.measure === 'rpm', raw = this._raw(rpm ? 'rpm' : w.signal), max = rpm ? this._barMax(w) : w.max, min = rpm ? 0 : w.min;
             const v = isNum(raw) ? Math.min(1, Math.max(0, (raw - min) / (max - min))) : 0;
             const q = Math.round(v * 400) / 400;
-            if (!force && q === x.last) return;
-            x.last = q;
+            const fl = w.leds && isNum(w.ledRed) && rpm && isNum(raw) && raw >= w.ledRed ? (Math.floor(Date.now() / 100) % 2 ? 2 : 1) : 0;
+            const key = q + '|' + fl;
+            if (!force && key === x.last) return;
+            x.last = key;
             x.c.uniform(x.ref, 'u_value', [q]);
+            if (w.leds) x.c.uniform(x.ref, 'u_flash', [fl]);
         } else if (w.type === 'shiftbar' || w.type === 'revarc' || w.type === 'scarc') {
             const rpm = this._raw('rpm');
             const segs = w.segments || (w.type === 'revarc' ? 30 : 40);

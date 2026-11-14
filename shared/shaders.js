@@ -1729,6 +1729,11 @@ uniform float u_full;
 uniform vec3 u_fg;
 uniform vec3 u_glow;
 uniform vec3 u_hot;
+uniform float u_leds;     // full: that many LEDs in the bezel (0 = none), lit from 0 up to the needle:
+uniform float u_ledWarn;  //   white below u_ledWarn, u_warn up to u_ledRed, red past it (0..1 of the dial)
+uniform float u_ledRed;
+uniform vec3 u_warn;
+uniform float u_flash;    // 1: every LED red, 2: every LED dark (the two halves of the blink)
 const float TAU = 6.2831853;
 
 void main() {
@@ -1751,6 +1756,17 @@ void main() {
         float bz = smoothstep(u_r + 10.0, u_r + 12.0, dist) * (1.0 - smoothstep(u_r + 24.0, u_r + 26.0, dist));
         float lit = 0.5 + 0.5 * cos(ang + 0.8);
         c = mix(c, vec4(vec3(0.35 + 0.55 * lit) * vec3(0.92, 0.95, 1.0), 1.0), bz);
+    }
+    // LEDs in the bezel
+    if (u_full > 0.5 && u_leds > 0.5 && f <= 1.0) {
+        float rl = u_r + 18.0, k = floor(f * u_leds), fk = (k + 0.5) / u_leds;
+        float la = u_start + fk * u_sweep;
+        float dl = length(p - (u_center + rl * vec2(sin(la), -cos(la))));
+        bool on = u_flash > 1.5 ? false : (u_flash > 0.5 || fk <= u_value);
+        vec3 lc = u_flash > 0.5 ? u_hot : fk >= u_ledRed ? u_hot : fk >= u_ledWarn ? u_warn : vec3(0.92, 0.97, 1.0);
+        float led = 1.0 - smoothstep(3.6, 5.0, dl);
+        float halo = on ? exp(-dl / 6.0) * 0.6 : 0.0;
+        c = mix(c, vec4(on ? lc : vec3(0.12, 0.13, 0.16), 1.0), clamp(led + halo, 0.0, 1.0));
     }
     // the glow under the ticks
     float gl = exp(-abs(dist - (u_r - 8.0)) / 14.0) * (f <= 1.0 ? 1.0 : 0.0);

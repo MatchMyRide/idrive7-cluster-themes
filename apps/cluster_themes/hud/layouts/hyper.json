@@ -71,7 +71,10 @@
       "r": 236,
       "measure": "rpm",
       "minor": 10,
-      "full": true
+      "full": true,
+      "leds": 54,
+      "ledWarn": 5000,
+      "ledRed": 6000
     },
     {
       "id": "tb_oil",
