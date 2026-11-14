@@ -286,6 +286,12 @@ const FILL = `// Solid fill for a cluster-render "effect" layer (GLSL ES 1.00): 
 precision mediump float;
 varying vec2 v_uv;
 uniform vec2 u_size;
+uniform vec4 u_cut0;      // BMW content kept visible (bottom strip): see-through rounded rect x, y, w, h layer px, w 0 = none
+uniform vec4 u_cut1;
+float cutA(vec4 r) {
+    vec2 d = abs(v_uv * u_size - r.xy - r.zw * 0.5) - r.zw * 0.5;
+    return r.z > 0.0 ? clamp(max(d.x, d.y) + 0.5, 0.0, 1.0) : 1.0;
+}
 uniform vec4 u_color;
 uniform vec4 u_hole;
 uniform float u_holeR;
@@ -300,6 +306,7 @@ void main() {
         a *= clamp(d + 0.5, 0.0, 1.0);
     }
     gl_FragColor = vec4(u_color.rgb, a);
+    gl_FragColor.a *= cutA(u_cut0) * cutA(u_cut1);
 }
 `;
 
@@ -342,6 +349,12 @@ const BOXES = `// The GT3 race dash's frame in one cluster-render "effect" layer
 precision mediump float;
 varying vec2 v_uv;
 uniform vec2 u_size;
+uniform vec4 u_cut0;      // BMW content kept visible (bottom strip): see-through rounded rect x, y, w, h layer px, w 0 = none
+uniform vec4 u_cut1;
+float cutA(vec4 r) {
+    vec2 d = abs(v_uv * u_size - r.xy - r.zw * 0.5) - r.zw * 0.5;
+    return r.z > 0.0 ? clamp(max(d.x, d.y) + 0.5, 0.0, 1.0) : 1.0;
+}
 uniform vec4 u_bg;
 uniform vec4 u_hole;
 uniform float u_holeR;
@@ -383,6 +396,7 @@ void main() {
         c = over(vec4(col.rgb, col.a * outer), c);
     }
     gl_FragColor = c;
+    gl_FragColor.a *= cutA(u_cut0) * cutA(u_cut1);
 }
 `;
 
@@ -755,6 +769,12 @@ precision mediump float;
 #endif
 varying vec2 v_uv;
 uniform vec2 u_size;
+uniform vec4 u_cut0;      // BMW content kept visible (bottom strip): see-through rounded rect x, y, w, h layer px, w 0 = none
+uniform vec4 u_cut1;
+float cutA(vec4 r) {
+    vec2 d = abs(v_uv * u_size - r.xy - r.zw * 0.5) - r.zw * 0.5;
+    return r.z > 0.0 ? clamp(max(d.x, d.y) + 0.5, 0.0, 1.0) : 1.0;
+}
 uniform vec4 u_geo;       // outer line: y at the top, y at the bend, y at the bottom, x at the bend (left side)
 uniform vec3 u_k;         // x per y px above the bend, below it, bend roundness px
 uniform float u_w;        // band width
@@ -914,6 +934,7 @@ void main() {
         c = over(vec4(1.0, 1.0, 1.0, 0.25 * inside * cov(abs(sy) - 1.0)), c);
     }
     gl_FragColor = c;
+    gl_FragColor.a *= cutA(u_cut0) * cutA(u_cut1);
 }
 `;
 
@@ -1431,6 +1452,12 @@ precision mediump float;
 #endif
 varying vec2 v_uv;
 uniform vec2 u_size;
+uniform vec4 u_cut0;      // BMW content kept visible (bottom strip): see-through rounded rect x, y, w, h layer px, w 0 = none
+uniform vec4 u_cut1;
+float cutA(vec4 r) {
+    vec2 d = abs(v_uv * u_size - r.xy - r.zw * 0.5) - r.zw * 0.5;
+    return r.z > 0.0 ? clamp(max(d.x, d.y) + 0.5, 0.0, 1.0) : 1.0;
+}
 uniform float u_mode;
 uniform vec4 u_bg;
 uniform vec3 u_a;
@@ -1495,6 +1522,7 @@ void main() {
     float dp = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - hs.y;
     if (u_pill.z > 0.0) col = mix(col, u_pc, clamp(1.5 - abs(dp + 1.0), 0.0, 1.0));
     gl_FragColor = vec4(col, u_bg.a);
+    gl_FragColor.a *= cutA(u_cut0) * cutA(u_cut1);
 }
 `;
 

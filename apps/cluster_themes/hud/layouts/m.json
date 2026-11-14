@@ -124,7 +124,16 @@
         376,
         1181,
         55
-      ]
+      ],
+      "hole": [
+        495,
+        570,
+        90,
+        90
+      ],
+      "holeWhen": true,
+      "holeInset": 0,
+      "holeRadius": 10
     },
     {
       "type": "mdash",

@@ -2040,7 +2040,7 @@ class HudApp {
             c.uniform(ref, 'u_fuelSeg', w.fuelSeg);
             c.uniform(ref, 'u_oilSeg', w.oilSeg);
             c.uniform(ref, 'u_hole', this._hole(w));
-            c.uniform(ref, 'u_holeR', [this._holeRadius(w)]);
+            c.uniform(ref, 'u_holeR', [this._holeRadius(w)]); this._cuts(c, ref, w);
             c.uniform(ref, 'u_strip', w.strip);
             c.uniform(ref, 'u_topEnd', [w.topEnd]);
             c.uniform(ref, 'u_road', w.road ? [w.road[0], w.road[1], 0, 1] : [0, 1, 0, 0]);
@@ -2227,7 +2227,7 @@ class HudApp {
         } else if (w.type === 'deco') {
             const D = t.decoColors || [t.accent, t.fg, t.dim], keep = (w.keep || []).slice(0, 4);
             c.uniform(ref, 'u_size', [w.w, w.h]);
-            c.uniform(ref, 'u_mode', [t.deco || 0]);
+            c.uniform(ref, 'u_mode', [t.deco || 0]); this._cuts(c, ref, w);
             c.uniform(ref, 'u_bg', rgba(color(t, w.color || 'bg')));
             c.uniform(ref, 'u_a', rgb(D[0]));
             c.uniform(ref, 'u_b', rgb(D[1]));
@@ -2242,7 +2242,7 @@ class HudApp {
             c.uniform(ref, 'u_size', [w.w, w.h]);
             c.uniform(ref, 'u_color', rgba(color(t, w.color || 'bg')));
             c.uniform(ref, 'u_hole', this._hole(w));
-            c.uniform(ref, 'u_holeR', [this._holeRadius(w)]);
+            c.uniform(ref, 'u_holeR', [this._holeRadius(w)]); this._cuts(c, ref, w);
         } else if (w.type === 'box') {
             c.uniform(ref, 'u_size', [w.w, w.h]);
             c.uniform(ref, 'u_fill', rgba(color(t, w.fill || 'panel')));
@@ -2268,7 +2268,7 @@ class HudApp {
             c.uniform(ref, 'u_size', [w.w, w.h]);
             c.uniform(ref, 'u_bg', rgba(color(t, w.color || 'bg')));
             c.uniform(ref, 'u_hole', this._hole(w));
-            c.uniform(ref, 'u_holeR', [this._holeRadius(w)]);
+            c.uniform(ref, 'u_holeR', [this._holeRadius(w)]); this._cuts(c, ref, w);
             c.uniform(ref, 'u_n', [list.length]);
             c.uniform(ref, 'u_box', rects, { type: 'vec4' });
             c.uniform(ref, 'u_boxStyle', styles, { type: 'vec4' });
@@ -2314,6 +2314,15 @@ class HudApp {
         if (!h) return [0, 0, 0, 0];
         const inset = isNum(w.holeInset) ? w.holeInset : 6;
         return [h[0] + inset - w.x, h[1] + inset - w.y, Math.max(0, h[2] - 2 * inset), Math.max(0, h[3] - 2 * inset)];
+    }
+
+    /** The backdrop's see-through cuts over BMW's own sign and drive mode (visible.KEEP), cluster only. */
+    _cuts(c, ref, w) {
+        const k = this.target === 'panel' ? visible.KEEP : [];
+        [0, 1].forEach((i) => {
+            const r = k[i];
+            c.uniform(ref, 'u_cut' + i, r ? [r[0] - w.x, r[1] - w.y, r[2] - r[0], r[3] - r[1]] : [0, 0, 0, 0]);
+        });
     }
 
     _holeRadius(w) { return isNum(w.holeRadius) ? w.holeRadius : 28; }
