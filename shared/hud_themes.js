@@ -50,6 +50,7 @@ const THEMES = {
         rev: { from: [57, 222, 72], to: [57, 222, 72] },
         bg: [0, 0, 0, 255], panel: [0, 0, 0, 255], line: [205, 208, 214, 255], head: [226, 228, 232, 255],
         ink: [12, 12, 14, 255], accent: [255, 196, 0, 255], well: [0, 0, 0, 255], wellLine: [70, 74, 80, 255],
+        gear: [60, 150, 255, 255],   // the gear number: blue, red only on the rev limiter
     },
     // Sport (layout sport.json): BMW's Live Cockpit Sport view, blue speed and red revs round the map.
     // Extra roles: sblue / spink (the speed and rpm scale numbers), sred (the rpm caption).

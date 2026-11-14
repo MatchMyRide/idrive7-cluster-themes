@@ -179,7 +179,7 @@
  * "mapInTheme" setting); the map is a content z 0 layer, so a frame meant to sit over it is content z 1 or more.
  * "themes": [...] shows it only in those themes. Text "color2": a second role, the colour at the bottom
  * of the box (a top-to-bottom gradient, the chrome look). Text: "hotWhen": "now" turns it the shift red
- * at the shift point; "coldWhen": "cold" turns it blue while the cold guard lowers the shift point.
+ * at the shift point ("limiter": only on the rev limiter, redline - 60 rpm); "coldWhen": "cold" turns it blue while the cold guard lowers the shift point.
  * scale: "over" as revbar; "redFrom": true draws the numbers from the redline on in red.
  * lights: "count" (12), "from" rpm (3000) where the first light comes on, "tail" (0): the last "tail" lights are blue
  *   (the GT3 look); "round": true for dots; with the setting "shiftCue" on "countin" (the default) the lights count in
@@ -1417,6 +1417,7 @@ class HudApp {
         // the count-in (setting "shiftCue"): "now" is the cue's early, latched flash (shift_cue.js), else the rpm at the point
         sp.now = this._countIn() ? this.cue.now.shift : isNum(rpm) && rpm >= sp.rpm;
         sp.oilCold = isNum(d.oil) && d.oil < 80;
+        sp.limiter = isNum(rpm) && rpm >= this.setting('redline') - 60;   // on the rev limiter ("hotWhen": "limiter")
         return sp;
     }
 
