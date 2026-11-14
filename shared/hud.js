@@ -354,6 +354,11 @@ const HV_SOC = { ecu: 0x07, did: 'DDBC', bytes: 2, at: 0, factor: 0.1, offset: 0
 const FUEL_OBD = { obd: '2F', bytes: 1, at: 0, factor: 100 / 255, offset: 0, min: 0, max: 100, timeoutMs: 1000 };
 const FUEL_EVERY_MS = 10000, FUEL_RETRY_MS = 300000, FUEL_STALE_MS = 60000;
 const HV_EVERY_MS = 5000, HV_RETRY_MS = 60000, HV_STALE_MS = 20000;
+// The gearbox oil temperature: read-only UDS 22 6000 (_GETRIEBEOELTEMPERATUR) from the ZF 8HP gearbox unit (EGS, 0x18),
+// one byte, offset -40 C, as cauliflowermossgrape's Transmission Config reads it (idrive7-apps apps/zf8hp, MIT).
+// Asked every GEAR_EVERY_MS while a shown widget uses it ("gearOil"); a gearbox that doesn't answer is asked once a minute.
+const GEAR_OIL = { ecu: 0x18, did: '6000', bytes: 1, at: 0, factor: 1, offset: -40, min: -40, max: 200, timeoutMs: 1000 };
+const GEAR_EVERY_MS = 3000, GEAR_RETRY_MS = 60000, GEAR_STALE_MS = 15000;
 // BMW's speed scale: even steps to 120 mph (180 km/h), then wider ones to 200 mph (320 km/h)
 const SPEED_SCALE = { us: [0, 20, 40, 60, 80, 100, 120, 160, 200], metric: [0, 30, 60, 90, 120, 150, 180, 250, 320] };
 /** speed (display unit) -> 0..1 along a scale of evenly spaced labels */
@@ -484,6 +489,7 @@ class HudApp {
         this.needsIntake = false;        // a shown widget uses the intake temperature
         this.hvSoc = null; this.hvSocAt = 0;  // %, a plug-in hybrid's battery charge (HV_SOC)
         this.needsHv = false;            // a shown widget uses it
+        this.gearOil = null; this.gearOilAt = 0; this.needsGearOil = false;   // C, the gearbox oil (GEAR_OIL)
         this.fuelObd = null; this.fuelObdAt = 0;  // %, the fuel level from the engine unit (FUEL_OBD)
         this.needsFuel = false;          // a shown widget uses the fuel level
         this.boostPeak = null;           // bar, the highest boost since the last 0-60 run started ({{boostPeak}})
@@ -593,6 +599,7 @@ class HudApp {
         this.needsBoost = /boost/.test(j);
         this.needsIntake = /intake/.test(j);
         this.needsHv = /hvSoc/.test(j);
+        this.needsGearOil = /gearOil/.test(j);
         this.needsFuel = /fuel/i.test(j);
     }
     /** A sensor's value now, as its slot shows it ('--' without one). */
@@ -887,7 +894,7 @@ class HudApp {
         const dme = this.config.dme;
         const hasBoost = !!(dme && Array.isArray(dme.boost) && dme.boost.length);
         const hasIntake = !!(dme && Array.isArray(dme.intake) && dme.intake.length);
-        let rd = null, busy = false, baro = 101.3, baroAt = 0, intakeAsk = 0, hvAsk = 0, hvMiss = 0, fuelAsk = 0, fuelMiss = 0;
+        let rd = null, busy = false, baro = 101.3, baroAt = 0, intakeAsk = 0, hvAsk = 0, hvMiss = 0, fuelAsk = 0, fuelMiss = 0, gearAsk = 0, gearMiss = 0;
         try {
             // the kit's read-only link: anything but a read (22 / OBD 01) is refused before it leaves the head unit.
             // silentAfter Infinity: never skip a unit that stopped answering; the retry timers below pace that.
@@ -903,7 +910,8 @@ class HudApp {
             const wantIntake = hasIntake && this.needsIntake && now - intakeAsk >= 2000;   // a temperature: every 2 s is plenty
             const wantHv = this.needsHv && now - hvAsk >= (hvMiss >= 3 ? HV_RETRY_MS : HV_EVERY_MS);
             const wantFuel = this.needsFuel && now - fuelAsk >= (fuelMiss >= 3 ? FUEL_RETRY_MS : FUEL_EVERY_MS);
-            if (busy || this.car.data().demo || (!wantBoost && !wantIntake && !wantHv && !wantFuel)) return;
+            const wantGear = this.needsGearOil && now - gearAsk >= (gearMiss >= 3 ? GEAR_RETRY_MS : GEAR_EVERY_MS);
+            if (busy || this.car.data().demo || (!wantBoost && !wantIntake && !wantHv && !wantFuel && !wantGear)) return;
             busy = true;
             (async () => {
                 if (wantFuel) {
@@ -924,6 +932,16 @@ class HudApp {
                         this.hvSoc = v; this.hvSocAt = Date.now(); hvMiss = 0;
                     } else if (++hvMiss === 3) {
                         this.log.info('hybrid battery: no answer from the battery unit (' + ((rd.raws[rd.key(HV_SOC)] || {}).why || '?') + '); asked once a minute');
+                    }
+                }
+                if (wantGear) {
+                    gearAsk = now;
+                    const v = await rd.read(GEAR_OIL);
+                    if (isNum(v)) {
+                        if (gearMiss >= 3 || !isNum(this.gearOil)) this.log.info('gearbox oil: ' + v.toFixed(0) + ' C from the gearbox unit (EGS 0x18, 6000)');
+                        this.gearOil = v; this.gearOilAt = Date.now(); gearMiss = 0;
+                    } else if (++gearMiss === 3) {
+                        this.log.info('gearbox oil: no answer from the gearbox unit (' + ((rd.raws[rd.key(GEAR_OIL)] || {}).why || '?') + '); asked once a minute');
                     }
                 }
                 if (wantIntake) {
@@ -1564,6 +1582,7 @@ class HudApp {
             return this.car.data().demo ? 31 : null;
         }
         if (name === 'rpm' && isNum(this.rpmF)) return this.rpmF;
+        if (name === 'gearOil') return isNum(this.gearOil) && Date.now() - this.gearOilAt < GEAR_STALE_MS ? this.gearOil : this.car.data().demo ? 72 : null;
         if (name === 'hvSoc') return isNum(this.hvSoc) && Date.now() - this.hvSocAt < HV_STALE_MS ? this.hvSoc : this.car.data().demo ? 64 : null;
         if (name === 'fuel' || name === 'range' || name === 'ambient') {
             // the kit's demo drive has none of these: made-up but steady values while it runs
@@ -1648,7 +1667,7 @@ class HudApp {
             case 'badge': return badges.text(this.setting('badge'), this.setting('badgeBMW') === true);
             case 'speed': { const v = this._raw('speed'); return fix(isNum(v) ? (us ? v * 0.621371 : v) : v, 0); }
             case 'u:speed': return us ? 'MPH' : 'KM/H';
-            case 'oil': case 'coolant': { const v = this._raw(tok); return fix(isNum(v) ? (us ? v * 9 / 5 + 32 : v) : v, 0); }
+            case 'oil': case 'coolant': case 'gearOil': { const v = this._raw(tok); return fix(isNum(v) ? (us ? v * 9 / 5 + 32 : v) : v, 0); }
             case 'boost': { const v = this._raw('boost'); return us ? fix(isNum(v) ? v * 14.5038 : v, 1) : fix(v, 2); }
             case 'u:boost': return us ? 'PSI' : 'BAR';
             case 'u:boostLc': return us ? 'psi' : 'bar';
@@ -1819,7 +1838,7 @@ class HudApp {
         this.mapShown = this.setting('mapUp');
         if (name === 'off') {
             this._wazeWant();
-            this.problem = null; this.layoutTheme = null; this.needsBoost = false; this.needsIntake = false; this.needsHv = false; this.needsFuel = false;
+            this.problem = null; this.layoutTheme = null; this.needsBoost = false; this.needsIntake = false; this.needsHv = false; this.needsFuel = false; this.needsGearOil = false;
             this.log.info('off: nothing drawn, BMW\'s own ' + (this.target === 'panel' ? 'cluster' : 'HUD') + ' shows');
             return;
         }
@@ -2401,6 +2420,8 @@ class HudApp {
                 if (w.hotWhen && sp[w.hotWhen]) role = 'hot';
             }
             role = smartTemps.role(this, w, role);       // temperature bands (cold, warming, hot), outside ice
+            // "bands" { signal, cold, hot } (deg C): blue under cold, the text's own colour up to hot, red over it
+            if (w.bands) { const bv = this._raw(w.bands.signal); if (isNum(bv)) role = bv < w.bands.cold ? VERDICT.COLD : bv > w.bands.hot ? 'hot' : role; }
             // over its warning limit: the value flashes in the shift red
             // ("warnFlash": false: not on a tile that turns red itself, the Dyno theme's)
             if (w.warnFlash !== false && this._warning(w) && Math.floor(now / WARN_FLASH_MS) % 2 === 0) role = 'hot';
