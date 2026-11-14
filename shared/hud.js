@@ -1735,6 +1735,11 @@ class HudApp {
                 const d = this.car.data();
                 return d.stage === 'D' || (!d.stage && isNum(d.gear) && d.gear > 0) ? this._program(d) : (d.stage || '-');
             }
+            case 'gearsUp': {      // Supercar's gear band: the next four gears up (in P / R / N: 1 to 4)
+                const d = this.car.data(), g = isNum(d.gear) && d.gear > 0 && !/[PRN]/.test(d.stage || '') ? d.gear : 0, out = [];
+                for (let n = g + 1; n <= Math.min(8, g + 4); n++) out.push(n);
+                return out.join(' ');
+            }
             case 'gearPrev': case 'gearNext': case 'gearMode': {   // Supercar: the gears either side, A (automatic) / M
                 const d = this.car.data(), g = d.gear;
                 const driving = (d.stage === 'D' || (!d.stage && isNum(g))) && isNum(g) && g > 0;
@@ -2172,6 +2177,7 @@ class HudApp {
             c.uniform(ref, 'u_redAt', [Math.min(1, (red - 1000) / max)]);
             c.uniform(ref, 'u_majors', [max / 1000]);
             c.uniform(ref, 'u_hex', [w.hex === false ? 0 : 1]);
+            c.uniform(ref, 'u_blocks', [w.blocks || 0]);
             c.uniform(ref, 'u_fg', rgb(color(t, 'fg')));
             c.uniform(ref, 'u_hot', rgb(color(t, 'hot')));
             c.uniform(ref, 'u_flash', [0]);

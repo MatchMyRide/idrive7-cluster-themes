@@ -1531,6 +1531,8 @@ const SCARC = `// The Supercar theme's rev arc (GLSL ES 1.00), one layer: a dott
 // half tick between), and a faint honeycomb inside the arc (u_hex 1). Angles in radians clockwise from 12 o'clock.
 //   u_size layer px, u_center layer px, u_r outer radius, u_band width, u_start / u_sweep, u_value 0..1,
 //   u_redAt 0..1, u_majors count, u_flash 1 = at the shift point (the lit band goes red), u_fg / u_hot rgb
+//   u_blocks > 0: the band is that many thick blocks instead (shaded lighter outwards, lit ones light grey, the red
+//   zone red), and no dotted ring
 precision mediump float;
 varying vec2 v_uv;
 uniform vec2 u_size;
@@ -1544,6 +1546,7 @@ uniform float u_redAt;
 uniform float u_majors;
 uniform float u_flash;
 uniform float u_hex;
+uniform float u_blocks;
 uniform vec3 u_fg;
 uniform vec3 u_hot;
 const float TAU = 6.2831853;
@@ -1570,15 +1573,26 @@ void main() {
     if (f <= 1.0) {
         float px = u_sweep * dist;                       // px along the arc per unit of f, here
         if (dist >= rIn && dist <= u_r) {
-            float pitch = 7.0, v = (dist - rIn) / pitch;
-            vec2 cell = vec2(fract(f * px / pitch + 0.5 * mod(floor(v), 2.0)) - 0.5, fract(v) - 0.5);
-            float holes = 1.0 - smoothstep(0.2, 0.34, length(cell));
             bool lit = f <= u_value;
-            vec3 col = (f >= u_redAt || (lit && u_flash > 0.5)) ? u_hot : u_fg;
-            c = vec4(col, holes * (lit ? 0.6 : 0.17) + (lit ? 0.08 : 0.03));
+            if (u_blocks > 0.5) {
+                float k = f * u_blocks, gap = (0.5 - abs(fract(k) - 0.5)) * px / u_blocks;
+                float t = (dist - rIn) / u_band;
+                bool on = (floor(k) + 0.5) / u_blocks <= u_value;
+                bool red = (floor(k) + 0.5) / u_blocks >= u_redAt;
+                vec3 base = red ? u_hot * (on || u_flash > 0.5 ? 1.0 : 0.55) : (on ? (u_flash > 0.5 ? u_hot : u_fg) : vec3(0.24));
+                float shade = on || red ? 0.5 + 0.5 * t : 0.55 + 0.45 * t;
+                float edge = smoothstep(2.5, 4.5, gap) * smoothstep(0.0, 2.0, u_r - dist) * smoothstep(0.0, 2.0, dist - rIn);
+                c = vec4(base * shade, edge);
+            } else {
+                float pitch = 7.0, v = (dist - rIn) / pitch;
+                vec2 cell = vec2(fract(f * px / pitch + 0.5 * mod(floor(v), 2.0)) - 0.5, fract(v) - 0.5);
+                float holes = 1.0 - smoothstep(0.2, 0.34, length(cell));
+                vec3 col = (f >= u_redAt || (lit && u_flash > 0.5)) ? u_hot : u_fg;
+                c = vec4(col, holes * (lit ? 0.6 : 0.17) + (lit ? 0.08 : 0.03));
+            }
             float nd = abs(f - u_value) * px;
             float needle = 1.0 - smoothstep(2.0, 3.5, nd);
-            float glow = (1.0 - smoothstep(0.0, 26.0, nd)) * 0.4 * step(f, u_value);
+            float glow = u_blocks > 0.5 ? 0.0 : (1.0 - smoothstep(0.0, 26.0, nd)) * 0.4 * step(f, u_value);
             c = mix(c, vec4(u_hot, 1.0), max(needle, glow));
         }
         float q = f * u_majors * 2.0, tq = abs(fract(q + 0.5) - 0.5) / (u_majors * 2.0) * px;
@@ -1589,7 +1603,7 @@ void main() {
         c = mix(c, vec4(f >= u_redAt ? u_hot : u_fg, 1.0), la);
         float rr = u_r + 9.0, n = floor(u_sweep * rr / 16.0);
         float along = (fract(f * n) - 0.5) * u_sweep * rr / n;
-        float dots = 1.0 - smoothstep(1.4, 2.4, length(vec2(along, dist - rr)));
+        float dots = u_blocks > 0.5 ? 0.0 : 1.0 - smoothstep(1.4, 2.4, length(vec2(along, dist - rr)));
         c = mix(c, vec4(f >= u_redAt ? u_hot : u_fg, 0.9), dots * (1.0 - la));
     }
     gl_FragColor = c;

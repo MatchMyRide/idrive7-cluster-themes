@@ -53,7 +53,7 @@ CLUSTER_FONTS = [
     # M: the wide squared numbers (Michroma, SIL OFL) and Barlow for the small print
     # Supercar: Orbitron Black, slanted like an italic; the gear and the arc's numbers hollow (outline)
     ('sc_gear', 'Orbitron[wght].ttf', 290, 'PRNDSM-' + DIGITS, 0, 'Black', {'0': 'O'}, '', 0.2, 7),
-    ('sc_gsm', 'Orbitron[wght].ttf', 64, 'PRNDSMA-' + DIGITS, 0, 'Bold', {'0': 'O'}, '', 0.2, 0),
+    ('sc_gsm', 'Orbitron[wght].ttf', 64, 'PRNDSMA- ' + DIGITS, 0, 'Bold', {'0': 'O'}, '', 0.2, 0),
     ('sc_num', 'Orbitron[wght].ttf', 46, DIGITS, 0, 'Black', {'0': 'O'}, '', 0.2, 2),
     ('sc_speed', 'Orbitron[wght].ttf', 104, DIGITS + '-', 0, 'Black', {'0': 'O'}, '', 0.2, 0),
     ('sc_val', 'Orbitron[wght].ttf', 34, DIGITS + '.:-+', 0, 'Bold', {'0': 'O'}, '', 0.2, 0),
