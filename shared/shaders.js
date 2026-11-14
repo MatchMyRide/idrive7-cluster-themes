@@ -1583,10 +1583,13 @@ void main() {
                 float fk = (floor(k) + 0.5) / u_blocks;
                 bool red = fk >= u_redAt, warn = !red && fk >= u_warnAt;
                 vec3 zone = red ? u_hot : u_warn;
-                vec3 base = red || warn ? zone * (on || u_flash > 0.5 ? 1.0 : 0.55) : (on ? (u_flash > 0.5 ? u_hot : u_fg) : vec3(0.24));
-                float shade = on || red || warn ? 0.5 + 0.5 * t : 0.55 + 0.45 * t;
+                vec3 base = red || warn ? zone * (on || u_flash > 0.5 ? 1.0 : 0.5) : (on ? (u_flash > 0.5 ? u_hot : u_fg) : vec3(0.36));
+                // a glossy tile: dark at the inner edge, bright towards the outer one, a lit rim on top, a sheen across
+                float across = 1.1 - 0.25 * fract(k);
+                float rad = 0.28 + 0.72 * t * t * (3.0 - 2.0 * t);
+                float rim = smoothstep(0.86, 0.96, t) * (1.0 - smoothstep(0.96, 1.0, t)) * 0.35;
                 float edge = smoothstep(2.5, 4.5, gap) * smoothstep(0.0, 2.0, u_r - dist) * smoothstep(0.0, 2.0, dist - rIn);
-                c = vec4(base * shade, edge);
+                c = vec4(min(base * rad * across + rim, vec3(1.0)), edge);
             } else {
                 float pitch = 7.0, v = (dist - rIn) / pitch;
                 vec2 cell = vec2(fract(f * px / pitch + 0.5 * mod(floor(v), 2.0)) - 0.5, fract(v) - 0.5);
@@ -1594,10 +1597,20 @@ void main() {
                 vec3 col = (f >= u_redAt || (lit && u_flash > 0.5)) ? u_hot : u_fg;
                 c = vec4(col, holes * (lit ? 0.6 : 0.17) + (lit ? 0.08 : 0.03));
             }
+            if (u_blocks < 0.5) {
+                float nd = abs(f - u_value) * px;
+                float needle = 1.0 - smoothstep(2.0, 3.5, nd);
+                float glow = (1.0 - smoothstep(0.0, 26.0, nd)) * 0.4 * step(f, u_value);
+                c = mix(c, vec4(u_hot, 1.0), max(needle, glow));
+            }
+        }
+        // blocks mode: a bold needle past both edges of the band - white core, red rim, dark shadow
+        if (u_blocks > 0.5 && dist >= rIn - 16.0 && dist <= u_r + 14.0) {
             float nd = abs(f - u_value) * px;
-            float needle = 1.0 - smoothstep(2.0, 3.5, nd);
-            float glow = u_blocks > 0.5 ? 0.0 : (1.0 - smoothstep(0.0, 26.0, nd)) * 0.4 * step(f, u_value);
-            c = mix(c, vec4(u_hot, 1.0), max(needle, glow));
+            float shadow = (1.0 - smoothstep(6.0, 9.0, nd)) * 0.7;
+            c = mix(c, vec4(0.0, 0.0, 0.0, 1.0), shadow);
+            c = mix(c, vec4(u_hot, 1.0), 1.0 - smoothstep(4.0, 5.5, nd));
+            c = mix(c, vec4(1.0, 1.0, 1.0, 1.0), 1.0 - smoothstep(1.5, 2.5, nd));
         }
         float q = f * u_majors * 2.0, tq = abs(fract(q + 0.5) - 0.5) / (u_majors * 2.0) * px;
         float tl = mod(floor(q + 0.5), 2.0) < 0.5 ? 18.0 : 9.0;
