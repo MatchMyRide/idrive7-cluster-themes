@@ -1650,6 +1650,7 @@ uniform float u_glow;
 uniform vec4 u_fill;
 uniform vec3 u_line;
 uniform vec3 u_line2;
+uniform vec3 u_circ;     // panel: a round cut-out x, y, r in layer px (r 0 = none): the edge then follows the circle
 
 void main() {
     vec2 px = v_uv * u_size;
@@ -1665,6 +1666,7 @@ void main() {
     vec2 q = abs(p) - b;
     float box = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
     float d = max(box, (abs(p.x) + abs(p.y) - (b.x + b.y - u_cut)) * 0.7071);
+    if (u_circ.z > 0.0) d = max(d, u_circ.z - length(px - u_circ.xy));
     float inside = 1.0 - smoothstep(-0.5, 0.5, d);
     vec4 c = vec4(u_fill.rgb, u_fill.a * inside * (1.0 - 0.55 * v_uv.y));
     float line = 1.0 - smoothstep(0.7, 1.7, abs(d));
