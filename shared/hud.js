@@ -2183,6 +2183,8 @@ class HudApp {
             c.uniform(ref, 'u_majors', [max / 1000]);
             c.uniform(ref, 'u_hex', [w.hex === false ? 0 : 1]);
             c.uniform(ref, 'u_blocks', [w.blocks || 0]);
+            c.uniform(ref, 'u_warnAt', [isNum(w.warnFrom) ? w.warnFrom / max : 2]);
+            c.uniform(ref, 'u_warn', rgb(color(t, 'warn')));
             c.uniform(ref, 'u_fg', rgb(color(t, 'fg')));
             c.uniform(ref, 'u_hot', rgb(color(t, 'hot')));
             c.uniform(ref, 'u_flash', [0]);

@@ -1547,6 +1547,8 @@ uniform float u_majors;
 uniform float u_flash;
 uniform float u_hex;
 uniform float u_blocks;
+uniform float u_warnAt;   // blocks mode: from here to u_redAt the blocks are u_warn (orange)
+uniform vec3 u_warn;
 uniform vec3 u_fg;
 uniform vec3 u_hot;
 const float TAU = 6.2831853;
@@ -1578,9 +1580,11 @@ void main() {
                 float k = f * u_blocks, gap = (0.5 - abs(fract(k) - 0.5)) * px / u_blocks;
                 float t = (dist - rIn) / u_band;
                 bool on = (floor(k) + 0.5) / u_blocks <= u_value;
-                bool red = (floor(k) + 0.5) / u_blocks >= u_redAt;
-                vec3 base = red ? u_hot * (on || u_flash > 0.5 ? 1.0 : 0.55) : (on ? (u_flash > 0.5 ? u_hot : u_fg) : vec3(0.24));
-                float shade = on || red ? 0.5 + 0.5 * t : 0.55 + 0.45 * t;
+                float fk = (floor(k) + 0.5) / u_blocks;
+                bool red = fk >= u_redAt, warn = !red && fk >= u_warnAt;
+                vec3 zone = red ? u_hot : u_warn;
+                vec3 base = red || warn ? zone * (on || u_flash > 0.5 ? 1.0 : 0.55) : (on ? (u_flash > 0.5 ? u_hot : u_fg) : vec3(0.24));
+                float shade = on || red || warn ? 0.5 + 0.5 * t : 0.55 + 0.45 * t;
                 float edge = smoothstep(2.5, 4.5, gap) * smoothstep(0.0, 2.0, u_r - dist) * smoothstep(0.0, 2.0, dist - rIn);
                 c = vec4(base * shade, edge);
             } else {

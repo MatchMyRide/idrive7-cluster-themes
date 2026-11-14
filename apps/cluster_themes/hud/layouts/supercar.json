@@ -35,7 +35,8 @@
       "start": 301.9,
       "sweep": 116.2,
       "segments": 140,
-      "blocks": 28
+      "blocks": 28,
+      "warnFrom": 5000
     },
     {
       "id": "bar_oil",
@@ -274,11 +275,11 @@
       "type": "text",
       "z": 5,
       "id": "gdown",
-      "x": 625,
+      "x": 650,
       "y": 446,
       "w": 200,
       "h": 50,
-      "text": "{{gearsDown}}",
+      "text": "{{gearsDown}} ",
       "font": "sc_gsm",
       "color": "dim",
       "align": "right",
