@@ -43,6 +43,7 @@ const TYPES = {
     scarc: ['center', 'r', 'start', 'sweep'],
     hframe: [],
     nline: ['points'],
+    bgauge: ['center', 'r'],
     ribbon: ['curve', 'span'],
     deco: [],
     nav: [],

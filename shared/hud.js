@@ -2309,6 +2309,22 @@ class HudApp {
             c.uniform(ref, 'u_color', rgba(color(t, w.color || 'bg')));
             c.uniform(ref, 'u_hole', this._hole(w));
             c.uniform(ref, 'u_holeR', [this._holeRadius(w)]); this._cuts(c, ref, w);
+        } else if (w.type === 'bgauge') {     // Hyper's round gauges (shaders.js bgauge): "measure" rpm, else "signal" between "min" and "max"
+            const rpm = w.measure === 'rpm', max = rpm ? this._barMax(w) : w.max;
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_center', w.center);
+            c.uniform(ref, 'u_r', [w.r]);
+            c.uniform(ref, 'u_start', [(isNum(w.start) ? w.start : 225) * Math.PI / 180]);
+            c.uniform(ref, 'u_sweep', [(isNum(w.sweep) ? w.sweep : 270) * Math.PI / 180]);
+            c.uniform(ref, 'u_redAt', [rpm ? Math.min(1, (this.setting('redline') - 500) / max) : isNum(w.redFrom) ? (w.redFrom - w.min) / (w.max - w.min) : 2]);
+            c.uniform(ref, 'u_majors', [w.majors || (rpm ? max / 1000 : 5)]);
+            c.uniform(ref, 'u_minor', [w.minor || 10]);
+            c.uniform(ref, 'u_fill', [w.fill ? 1 : 0]);
+            c.uniform(ref, 'u_full', [w.full ? 1 : 0]);
+            c.uniform(ref, 'u_fg', rgb(color(t, 'fg')));
+            c.uniform(ref, 'u_glow', rgb(color(t, w.glow || 'accent')));
+            c.uniform(ref, 'u_hot', rgb(color(t, 'hot')));
+            c.uniform(ref, 'u_value', [0]);
         } else if (w.type === 'nline') {      // a neon polyline: "points" [[x, y], ...] in target px (up to 25), null breaks the line
             const P = w.points.slice(0, 25), segs = [];
             for (let i = 0; i + 1 < P.length; i++) if (P[i] && P[i + 1]) segs.push(P[i][0] - w.x, P[i][1] - w.y, P[i + 1][0] - w.x, P[i + 1][1] - w.y);   // null: a break in the line
@@ -2588,6 +2604,13 @@ class HudApp {
             x.last = key;
             x.c.uniform(x.ref, 'u_value', [q]);
             x.c.uniform(x.ref, 'u_flash', [this.flash ? 1 : 0]);
+        } else if (w.type === 'bgauge') {
+            const rpm = w.measure === 'rpm', raw = this._raw(rpm ? 'rpm' : w.signal), max = rpm ? this._barMax(w) : w.max, min = rpm ? 0 : w.min;
+            const v = isNum(raw) ? Math.min(1, Math.max(0, (raw - min) / (max - min))) : 0;
+            const q = Math.round(v * 400) / 400;
+            if (!force && q === x.last) return;
+            x.last = q;
+            x.c.uniform(x.ref, 'u_value', [q]);
         } else if (w.type === 'shiftbar' || w.type === 'revarc' || w.type === 'scarc') {
             const rpm = this._raw('rpm');
             const segs = w.segments || (w.type === 'revarc' ? 30 : 40);

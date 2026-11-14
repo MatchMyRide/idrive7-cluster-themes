@@ -1707,4 +1707,80 @@ void main() {
 }
 `;
 
-module.exports = { nline: NLINE, hframe: HFRAME, scarc: SCARC, shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, atext: ATEXT, dial: DIAL, meter: METER, gmeter: GMETER, revarc: REVARC, tiles: TILES, ribbon: RIBBON, deco: DECO };
+const BGAUGE = `// A hypercar's round gauge (GLSL ES 1.00), the Hyper theme's: a glowing ring of fine ticks (u_majors intervals of
+// u_minor ticks, the majors long and bold, red from u_redAt), lit brighter up to u_value when u_fill is 1, and with
+// u_full 1 also a polished bezel round it, a dark face with a stepped inner ring, and a white needle on a ring hub.
+// Angles: degrees clockwise from 12 o'clock in u_start / u_sweep (radians). Radii in px from u_center (layer px).
+//   u_size, u_center, u_r (the ticks' outer edge), u_start, u_sweep, u_value 0..1, u_redAt 0..1 (2 = none), u_majors,
+//   u_minor, u_fill, u_full, u_fg (ticks, needle), u_glow (the glow), u_hot (red)
+precision mediump float;
+varying vec2 v_uv;
+uniform vec2 u_size;
+uniform vec2 u_center;
+uniform float u_r;
+uniform float u_start;
+uniform float u_sweep;
+uniform float u_value;
+uniform float u_redAt;
+uniform float u_majors;
+uniform float u_minor;
+uniform float u_fill;
+uniform float u_full;
+uniform vec3 u_fg;
+uniform vec3 u_glow;
+uniform vec3 u_hot;
+const float TAU = 6.2831853;
+
+void main() {
+    vec2 p = v_uv * u_size, d = p - u_center;
+    float dist = length(d);
+    float ang = atan(d.x, -d.y);
+    if (ang < 0.0) ang += TAU;
+    float rel = ang - u_start;
+    if (rel < 0.0) rel += TAU;
+    float f = rel / u_sweep;
+    vec4 c = vec4(0.0);
+    if (u_full > 0.5) {
+        // the face: dark blue in the middle fading to black, a stepped ring inside the ticks
+        if (dist < u_r + 6.0) c = vec4(mix(vec3(0.05, 0.09, 0.16), vec3(0.0), smoothstep(0.0, u_r, dist)), 1.0);
+        float step8 = floor(mod(ang / TAU * 24.0, 2.0));
+        float rIn = u_r * 0.66 + step8 * 10.0;
+        float inner = smoothstep(rIn - 1.0, rIn + 1.0, dist) * (1.0 - smoothstep(u_r * 0.74 + 8.0, u_r * 0.74 + 10.0, dist));
+        c = mix(c, vec4(0.1, 0.13, 0.19, 1.0), inner * 0.9);
+        // the bezel: polished, lit from the top left
+        float bz = smoothstep(u_r + 10.0, u_r + 12.0, dist) * (1.0 - smoothstep(u_r + 24.0, u_r + 26.0, dist));
+        float lit = 0.5 + 0.5 * cos(ang + 0.8);
+        c = mix(c, vec4(vec3(0.35 + 0.55 * lit) * vec3(0.92, 0.95, 1.0), 1.0), bz);
+    }
+    // the glow under the ticks
+    float gl = exp(-abs(dist - (u_r - 8.0)) / 14.0) * (f <= 1.0 ? 1.0 : 0.0);
+    bool lit = u_fill < 0.5 || f <= u_value;
+    c = mix(c, vec4(u_glow, 1.0), clamp(gl * (lit ? 0.55 : 0.18), 0.0, 1.0));
+    // the ticks
+    if (f <= 1.0 && dist > u_r - 34.0 && dist < u_r + 1.0) {
+        float n = u_majors * u_minor, q = f * n, k = floor(q + 0.5);
+        float across = abs(q - k) / n * u_sweep * dist;
+        bool major = mod(k, u_minor) < 0.5;
+        float len = major ? 32.0 : 15.0, wid = major ? 2.6 : 1.1;
+        float t = (1.0 - smoothstep(wid - 0.6, wid + 0.6, across)) * step(u_r - len, dist);
+        vec3 tc = k / n >= u_redAt ? u_hot : mix(u_fg, u_glow, 0.25);
+        c = mix(c, vec4(tc, 1.0), t * (lit ? 1.0 : 0.45));
+    }
+    if (u_full > 0.5) {
+        // the needle: white, tapering, from the hub nearly to the ticks; the hub a white ring
+        float a = u_start + u_value * u_sweep;
+        vec2 nd = vec2(sin(a), -cos(a));
+        float along = dot(d, nd), side = abs(d.x * nd.y - d.y * nd.x);
+        float w = mix(4.5, 1.6, clamp(along / u_r, 0.0, 1.0));
+        float needle = (1.0 - smoothstep(w - 0.7, w + 0.7, side)) * step(26.0, along) * step(along, u_r - 22.0);
+        c = mix(c, vec4(u_fg, 1.0), needle);
+        c = mix(c, vec4(u_glow, 1.0), exp(-side / 5.0) * 0.35 * step(26.0, along) * step(along, u_r - 22.0) * (1.0 - needle));
+        float hub = 1.0 - smoothstep(1.4, 2.6, abs(dist - 24.0));
+        c = mix(c, vec4(u_fg, 1.0), hub);
+        if (dist < 22.5) c = vec4(0.04, 0.06, 0.1, 1.0);
+    }
+    gl_FragColor = c;
+}
+`;
+
+module.exports = { bgauge: BGAUGE, nline: NLINE, hframe: HFRAME, scarc: SCARC, shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, atext: ATEXT, dial: DIAL, meter: METER, gmeter: GMETER, revarc: REVARC, tiles: TILES, ribbon: RIBBON, deco: DECO };

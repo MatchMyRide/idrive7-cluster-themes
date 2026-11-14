@@ -118,6 +118,17 @@ const THEMES = {
         ink: [12, 12, 14, 255], accent: [80, 230, 110, 255], well: [0, 0, 0, 255], go: [80, 230, 110, 255],
     },
     // Rally (layout rally.json): a sweeping rev arc over a huge gear, a G-meter, rally yellow.
+    // Hyper (layout hyper.json): ice-white ticks with a blue glow on black, a polished bezel, red only past the redline.
+    hyper: {
+        name: 'Hyper',
+        fg: [236, 244, 255, 255], dim: [120, 146, 182, 255], track: [255, 255, 255, 30], arc: [90, 175, 255, 255],
+        glow: 0, stripe: false,
+        bar: { low: [236, 244, 255], mid: [90, 175, 255], high: [255, 60, 50], midAt: 'shift' },
+        rev: { from: [236, 244, 255], to: [90, 175, 255] },
+        bg: [0, 0, 0, 255], panel: [0, 0, 0, 255], line: [150, 170, 200, 255], head: [90, 175, 255, 255],
+        ink: [12, 12, 14, 255], accent: [90, 175, 255, 255], well: [0, 0, 0, 255], hot: [255, 60, 50, 255],
+        frame: [110, 128, 156, 255], clear: [0, 0, 0, 0], pfill: [6, 14, 28, 150], band: [40, 52, 70, 255],
+    },
     // Supercar (layout supercar.json): white rev arc going amber to red, cyan gear and labels on black.
     supercar: {
         name: 'Supercar',
