@@ -1753,19 +1753,23 @@ void main() {
         float inner = smoothstep(rIn - 1.0, rIn + 1.0, dist) * (1.0 - smoothstep(u_r * 0.74 + 8.0, u_r * 0.74 + 10.0, dist));
         c = mix(c, vec4(0.1, 0.13, 0.19, 1.0), inner * 0.9);
         // the bezel: polished, lit from the top left
-        float bz = smoothstep(u_r + 10.0, u_r + 12.0, dist) * (1.0 - smoothstep(u_r + 24.0, u_r + 26.0, dist));
+        float bz = smoothstep(u_r + 8.0, u_r + 10.0, dist) * (1.0 - smoothstep(u_r + 34.0, u_r + 36.0, dist));
         float lit = 0.5 + 0.5 * cos(ang + 0.8);
-        c = mix(c, vec4(vec3(0.35 + 0.55 * lit) * vec3(0.92, 0.95, 1.0), 1.0), bz);
+        float rim = 1.0 - smoothstep(1.0, 2.5, min(abs(dist - u_r - 10.0), abs(dist - u_r - 34.0)));
+        c = mix(c, vec4(vec3(0.1 + 0.2 * lit) * vec3(0.92, 0.95, 1.0), 1.0), bz);
+        c = mix(c, vec4(vec3(0.45 + 0.45 * lit), 1.0), rim * bz);
     }
     // LEDs in the bezel
     if (u_full > 0.5 && u_leds > 0.5 && f <= 1.0) {
-        float rl = u_r + 18.0, k = floor(f * u_leds), fk = (k + 0.5) / u_leds;
+        float rl = u_r + 22.0, k = floor(f * u_leds), fk = (k + 0.5) / u_leds;
         float la = u_start + fk * u_sweep;
-        float dl = length(p - (u_center + rl * vec2(sin(la), -cos(la))));
+        vec2 rad = vec2(sin(la), -cos(la)), lp = p - (u_center + rl * rad);
+        vec2 lq = abs(vec2(dot(lp, vec2(-rad.y, rad.x)), dot(lp, rad))) - vec2(4.0, 7.0);
+        float dl = length(max(lq, 0.0)) + min(max(lq.x, lq.y), 0.0);
         bool on = u_flash > 1.5 ? false : (u_flash > 0.5 || fk <= u_value);
         vec3 lc = u_flash > 0.5 ? u_hot : fk >= u_ledRed ? u_hot : fk >= u_ledWarn ? u_warn : vec3(0.92, 0.97, 1.0);
-        float led = 1.0 - smoothstep(3.6, 5.0, dl);
-        float halo = on ? exp(-dl / 6.0) * 0.6 : 0.0;
+        float led = 1.0 - smoothstep(-0.6, 0.8, dl);
+        float halo = on ? exp(-max(dl, 0.0) / 5.0) * 0.6 : 0.0;
         c = mix(c, vec4(on ? lc : vec3(0.12, 0.13, 0.16), 1.0), clamp(led + halo, 0.0, 1.0));
     }
     // the glow under the ticks
