@@ -1667,6 +1667,8 @@ uniform vec4 u_fill;
 uniform vec3 u_line;
 uniform vec3 u_line2;
 uniform vec3 u_circ;
+uniform vec4 u_cuts;      // panel: the chamfer per corner, px: top left, top right, bottom right, bottom left
+uniform vec4 u_div;       // panel: up to four divider lines across it at these y (layer px, 0 = none)
 uniform vec4 u_cut0;      // BMW content kept visible (visible.KEEP): see-through rects x, y, w, h layer px
 uniform vec4 u_cut1;
 float cutA(vec4 r) {
@@ -1689,7 +1691,8 @@ void main() {
     vec2 m = vec2(u_glow + 2.0), b = u_size * 0.5 - m, p = px - u_size * 0.5;
     vec2 q = abs(p) - b;
     float box = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
-    float d = max(box, (abs(p.x) + abs(p.y) - (b.x + b.y - u_cut)) * 0.7071);
+    float cc = p.y < 0.0 ? (p.x < 0.0 ? u_cuts.x : u_cuts.y) : (p.x > 0.0 ? u_cuts.z : u_cuts.w);
+    float d = max(box, (abs(p.x) + abs(p.y) - (b.x + b.y - cc)) * 0.7071);
     if (u_circ.z > 0.0) d = max(d, u_circ.z - length((px - u_circ.xy) / 64.0) * 64.0);
     float inside = 1.0 - smoothstep(-0.5, 0.5, d);
     vec4 c = vec4(u_fill.rgb, u_fill.a * inside * (1.0 - 0.55 * v_uv.y));
@@ -1700,6 +1703,12 @@ void main() {
     float bar = u_head > 0.0 ? step(hy, 2.0) * step(m.x + u_cut * 0.6, px.x) * step(px.x, m.x + u_cut * 0.6 + 40.0) : 0.0;
     c = mix(c, vec4(lc, 1.0), clamp(max(glow, head), 0.0, 1.0));
     c = mix(c, vec4(mix(lc, vec3(1.0), 0.35), 1.0), max(line, bar));
+    // the dividers: thin lines that stop short of the frame, so they follow its shape
+    float dv = u_div.x > 0.0 ? 1.0 - smoothstep(0.4, 1.2, abs(px.y - u_div.x)) : 0.0;
+    dv = max(dv, u_div.y > 0.0 ? 1.0 - smoothstep(0.4, 1.2, abs(px.y - u_div.y)) : 0.0);
+    dv = max(dv, u_div.z > 0.0 ? 1.0 - smoothstep(0.4, 1.2, abs(px.y - u_div.z)) : 0.0);
+    dv = max(dv, u_div.w > 0.0 ? 1.0 - smoothstep(0.4, 1.2, abs(px.y - u_div.w)) : 0.0);
+    c = mix(c, vec4(mix(lc, vec3(1.0), 0.15), 1.0), dv * (1.0 - smoothstep(-20.0, -10.0, d)) * 0.7);
     c.a *= cutA(u_cut0) * cutA(u_cut1);
     gl_FragColor = c;
 }

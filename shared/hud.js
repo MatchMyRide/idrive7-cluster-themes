@@ -2419,6 +2419,10 @@ class HudApp {
             c.uniform(ref, 'u_size', [w.w, w.h]);
             c.uniform(ref, 'u_mode', [w.mode === 'line' ? 1 : 0]);
             c.uniform(ref, 'u_cut', [isNum(w.cut) ? w.cut : 22]);
+            // a chamfer per corner ("cuts": top left, top right, bottom right, bottom left), dividers at target y
+            const k = isNum(w.cut) ? w.cut : 22, cs = Array.isArray(w.cuts) ? w.cuts : [k, k, k, k], dv = (w.dividers || []).slice(0, 4);
+            c.uniform(ref, 'u_cuts', [0, 1, 2, 3].map((i) => (isNum(cs[i]) ? cs[i] : k)));
+            c.uniform(ref, 'u_div', [0, 1, 2, 3].map((i) => (isNum(dv[i]) ? dv[i] - w.y : 0)));
             c.uniform(ref, 'u_head', [w.head || 0]);
             c.uniform(ref, 'u_glow', [isNum(w.glow) ? w.glow : 6]);
             c.uniform(ref, 'u_fill', rgba(color(t, w.fill || 'pfill')));
