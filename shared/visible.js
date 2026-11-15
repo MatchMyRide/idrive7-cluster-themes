@@ -37,7 +37,8 @@ const HUD_BMW = [120, 235, 350, 380];
  *  the model badge (x ~800..1060, y ~55..105 on our X3, Nov 6 grid photo), and the badge moves under it. Seen on one
  *  owner's car hiding GT3's middle shift lights (estimate x 740..1160, y 0..100 from an angled photo). Not measured on a
  *  camera car: the setting "cameraNotch" leaves this gap in the shift lights and rev bars. [x0, y0, x1, y1] */
-const CAMERA = [760, 0, 1160, 110];
+// G23 M440i from the driver's seat (Nov 15 2026 photos): the camera hides down to about y 130
+const CAMERA = [760, 0, 1160, 130];
 
 /** The first visible y at x on the panel (interpolated along HOOD). */
 function hoodY(x) {
