@@ -359,6 +359,18 @@ const HV_EVERY_MS = 5000, HV_RETRY_MS = 60000, HV_STALE_MS = 20000;
 // Asked every GEAR_EVERY_MS while a shown widget uses it ("gearOil"); a gearbox that doesn't answer is asked once a minute.
 const GEAR_OIL = { ecu: 0x18, did: '6000', bytes: 1, at: 0, factor: 1, offset: -40, min: -40, max: 200, timeoutMs: 1000 };
 const GEAR_EVERY_MS = 3000, GEAR_RETRY_MS = 60000, GEAR_STALE_MS = 15000;
+// The exhaust flap, read only, as cauliflowermossgrape's Engine Config reads it (idrive7-apps apps/live_adjustments,
+// diaglink.js / real_adapters.js, MIT): the engine unit (DME 0x12) DID 62FD ASW_EL_AGK, the flap's commanded
+// closure in 0.01 % (BMW's DME8 / MG1 description): <= 20 % open, >= 80 % closed, else the DME is moving it.
+// The commanding stays with Engine Config; this only shows it. Unverified on a B58 here (Nov 15 2026).
+const FLAP = { ecu: 0x12, did: '62FD', bytes: 2, at: 0, factor: 0.01, offset: 0, min: 0, max: 100, timeoutMs: 1000 };
+const FLAP_EVERY_MS = 2000, FLAP_RETRY_MS = 60000, FLAP_STALE_MS = 10000;
+// xDrive on or off, read only (Engine Config's xdrive.js, MIT): the transfer case (LMV 0x19) DID DB32 LMV_MOMENT,
+// <actual s16> <qualifier u16> <requested s16> <qualifier u16>; the requested torque's qualifier, last byte, reads
+// 0x20 / 0x21 while xDrive works and 0xE8 after Engine Config switched it off: (q & 0xC0) === 0xC0 -> rear-wheel drive.
+// Measured on a G01 X3 M40i and in a G22 M440i's logs; the front axle's actual torque is raw / 4 Nm.
+const LMV_STATE = { ecu: 0x19, did: 'DB32', bytes: 1, at: 7, factor: 1, offset: 0, min: 0, max: 255, timeoutMs: 1000 };
+const LMV_EVERY_MS = 3000, LMV_RETRY_MS = 60000, LMV_STALE_MS = 15000;
 // BMW's speed scale: even steps to 120 mph (180 km/h), then wider ones to 200 mph (320 km/h)
 const SPEED_SCALE = { us: [0, 20, 40, 60, 80, 100, 120, 160, 200], metric: [0, 30, 60, 90, 120, 150, 180, 250, 320] };
 /** speed (display unit) -> 0..1 along a scale of evenly spaced labels */
@@ -489,7 +501,10 @@ class HudApp {
         this.needsIntake = false;        // a shown widget uses the intake temperature
         this.hvSoc = null; this.hvSocAt = 0;  // %, a plug-in hybrid's battery charge (HV_SOC)
         this.needsHv = false;            // a shown widget uses it
-        this.gearOil = null; this.gearOilAt = 0; this.needsGearOil = false;   // C, the gearbox oil (GEAR_OIL)
+        this.gearOil = null; this.gearOilAt = 0; this.needsGearOil = false;
+        this.flapPct = null; this.flapAt = 0; this.needsFlap = false;        // % closed, the exhaust flap (FLAP)
+        this.lmvQ = null; this.lmvFront = null; this.lmvAt = 0; this.needsDrive = false;   // the transfer case (LMV_STATE)
+        this.rearPct = null; this.rearAt = 0;                                 // % of the torque to the rear axle (BasicDataSet)   // C, the gearbox oil (GEAR_OIL)
         this.fuelObd = null; this.fuelObdAt = 0;  // %, the fuel level from the engine unit (FUEL_OBD)
         this.needsFuel = false;          // a shown widget uses the fuel level
         this.boostPeak = null;           // bar, the highest boost since the last 0-60 run started ({{boostPeak}})
@@ -600,6 +615,8 @@ class HudApp {
         this.needsIntake = /intake/.test(j);
         this.needsHv = /hvSoc/.test(j);
         this.needsGearOil = /gearOil/.test(j);
+        this.needsFlap = /flap/.test(j);
+        this.needsDrive = /drivetrain/.test(j);
         this.needsFuel = /fuel/i.test(j);
     }
     /** A sensor's value now, as its slot shows it ('--' without one). */
@@ -694,6 +711,15 @@ class HudApp {
         const extra = {
             // BMW's vehicle state, for the switch-off guard (vehicle_state.js)
             'de.bmw.infrastructure.VehicleCondition': { VehicleCondition: (v) => this.vstate.feed(v) },
+            // xDrive's front / rear split, 0.01 % per bit to the rear axle (Engine Config's xdrive_live.js, M Vitals, MIT)
+            'de.bmw.infrastructure.analytics.BasicDataSet': {
+                basicDataSet: (v) => {
+                    const raw = v && v.valueDistributionLongitudinalTorqueRearAxisFrontAxis, q = v && v.qualifierValueDistributionLongitudinalTorqueRearAxisFrontAxis;
+                    const ok = q === undefined || q === null || q === 2 || q === 10 || q === 'SIGNALWERT_IST_GUELTIG' || q === 'SIGNALWERT_IST_GUELTIG__REKALIBRIERUNGSBEDARF';
+                    if (!ok || !isNum(raw) || raw === 0 || raw === 65535 || raw > 10000) return;
+                    this.rearPct = raw * 0.01; this.rearAt = Date.now();
+                },
+            },
             // fuel and range (cauliflowermossgrape's live_data, MIT): litres (255 = none) and km (4095 = none)
             'de.bmw.infotainment.KombiIF': {
                 statusRangeTankStatus: (v) => {
@@ -894,7 +920,8 @@ class HudApp {
         const dme = this.config.dme;
         const hasBoost = !!(dme && Array.isArray(dme.boost) && dme.boost.length);
         const hasIntake = !!(dme && Array.isArray(dme.intake) && dme.intake.length);
-        let rd = null, busy = false, baro = 101.3, baroAt = 0, intakeAsk = 0, hvAsk = 0, hvMiss = 0, fuelAsk = 0, fuelMiss = 0, gearAsk = 0, gearMiss = 0;
+        let rd = null, busy = false, baro = 101.3, baroAt = 0, intakeAsk = 0, hvAsk = 0, hvMiss = 0, fuelAsk = 0, fuelMiss = 0, gearAsk = 0, gearMiss = 0,
+            flapAsk = 0, flapMiss = 0, lmvAsk = 0, lmvMiss = 0;
         try {
             // the kit's read-only link: anything but a read (22 / OBD 01) is refused before it leaves the head unit.
             // silentAfter Infinity: never skip a unit that stopped answering; the retry timers below pace that.
@@ -911,7 +938,9 @@ class HudApp {
             const wantHv = this.needsHv && now - hvAsk >= (hvMiss >= 3 ? HV_RETRY_MS : HV_EVERY_MS);
             const wantFuel = this.needsFuel && now - fuelAsk >= (fuelMiss >= 3 ? FUEL_RETRY_MS : FUEL_EVERY_MS);
             const wantGear = this.needsGearOil && now - gearAsk >= (gearMiss >= 3 ? GEAR_RETRY_MS : GEAR_EVERY_MS);
-            if (busy || this.car.data().demo || (!wantBoost && !wantIntake && !wantHv && !wantFuel && !wantGear)) return;
+            const wantFlap = this.needsFlap && now - flapAsk >= (flapMiss >= 3 ? FLAP_RETRY_MS : FLAP_EVERY_MS);
+            const wantLmv = this.needsDrive && now - lmvAsk >= (lmvMiss >= 3 ? LMV_RETRY_MS : LMV_EVERY_MS);
+            if (busy || this.car.data().demo || (!wantBoost && !wantIntake && !wantHv && !wantFuel && !wantGear && !wantFlap && !wantLmv)) return;
             busy = true;
             (async () => {
                 if (wantFuel) {
@@ -942,6 +971,31 @@ class HudApp {
                         this.gearOil = v; this.gearOilAt = Date.now(); gearMiss = 0;
                     } else if (++gearMiss === 3) {
                         this.log.info('gearbox oil: no answer from the gearbox unit (' + ((rd.raws[rd.key(GEAR_OIL)] || {}).why || '?') + '); asked once a minute');
+                    }
+                }
+                if (wantFlap) {
+                    flapAsk = now;
+                    const v = await rd.read(FLAP);
+                    if (isNum(v)) {
+                        if (flapMiss >= 3 || !isNum(this.flapPct)) this.log.info('exhaust flap: ' + v.toFixed(0) + ' % closed (DME 0x12, 62FD)');
+                        this.flapPct = v; this.flapAt = Date.now(); flapMiss = 0;
+                    } else if (++flapMiss === 3) {
+                        this.log.info('exhaust flap: no answer from the engine unit (' + ((rd.raws[rd.key(FLAP)] || {}).why || '?') + '); asked once a minute');
+                    }
+                }
+                if (wantLmv) {
+                    lmvAsk = now;
+                    const v = await rd.read(LMV_STATE), r = rd.raws[rd.key(LMV_STATE)] || {};
+                    if (isNum(v)) {
+                        const b = String(r.bytes || '').split(' ').map((x) => parseInt(x, 16));
+                        let front = b.length >= 5 ? b[3] * 256 + b[4] : null;      // 62 DB 32 <actual s16> ...
+                        if (isNum(front) && front >= 32768) front -= 65536;
+                        if ((lmvMiss >= 3 || !isNum(this.lmvQ)) || ((v & 0xC0) === 0xC0) !== ((this.lmvQ & 0xC0) === 0xC0)) {
+                            this.log.info('xDrive: ' + ((v & 0xC0) === 0xC0 ? 'off (rear-wheel drive)' : 'on') + ' (LMV 0x19, DB32 ' + (r.bytes || '') + ')');
+                        }
+                        this.lmvQ = v; this.lmvFront = isNum(front) ? front / 4 : null; this.lmvAt = Date.now(); lmvMiss = 0;
+                    } else if (++lmvMiss === 3) {
+                        this.log.info('xDrive: no answer from the transfer case (' + (r.why || '?') + '); asked once a minute');
                     }
                 }
                 if (wantIntake) {
@@ -1583,6 +1637,10 @@ class HudApp {
             return this.car.data().demo ? 31 : null;
         }
         if (name === 'rpm' && isNum(this.rpmF)) return this.rpmF;
+        if (name === 'rearPct') {
+            if (isNum(this.rearPct) && Date.now() - this.rearAt < 3000) return this.rearPct;
+            return this.car.data().demo ? 60 + 25 * Math.sin(Date.now() / 1400) : null;
+        }
         if (name === 'gearOil') return isNum(this.gearOil) && Date.now() - this.gearOilAt < GEAR_STALE_MS ? this.gearOil : this.car.data().demo ? 72 : null;
         if (name === 'hvSoc') return isNum(this.hvSoc) && Date.now() - this.hvSocAt < HV_STALE_MS ? this.hvSoc : this.car.data().demo ? 64 : null;
         if (name === 'fuel' || name === 'range' || name === 'ambient') {
@@ -1690,6 +1748,18 @@ class HudApp {
                 return (n > 0 ? '+' : '') + n;
             }
             case 'u:torque': return us ? 'lb-ft' : 'Nm';
+            case 'drivetrain': {     // AWD / RWD: the transfer case's state, else whether the split moves
+                if (isNum(this.lmvQ) && Date.now() - this.lmvAt < LMV_STALE_MS) return (this.lmvQ & 0xC0) === 0xC0 ? 'RWD' : 'AWD';
+                return this.car.data().demo ? 'AWD' : '--';
+            }
+            case 'rearPct': case 'frontPct': {
+                const r = this._raw('rearPct');
+                return isNum(r) ? String(Math.round(tok === 'rearPct' ? r : 100 - r)) : '--';
+            }
+            case 'flap': {           // the exhaust flap: OPEN / CLOSED, AUTO while the engine unit moves it
+                const p = isNum(this.flapPct) && Date.now() - this.flapAt < FLAP_STALE_MS ? this.flapPct : this.car.data().demo ? 0 : null;
+                return !isNum(p) ? '--' : p <= 20 ? 'OPEN' : p >= 80 ? 'CLOSED' : 'AUTO';
+            }
             case 'powerPS': {        // metric horsepower (PS) from the crank torque and rpm
                 const d = this.car.data(), rpm = this._raw('rpm');
                 if (!isNum(d.torque) || !isNum(rpm)) return '--';
