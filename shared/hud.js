@@ -2586,6 +2586,8 @@ class HudApp {
             role = smartTemps.role(this, w, role);       // temperature bands (cold, warming, hot), outside ice
             // "bands" { signal, cold, hot } (deg C): blue under cold, the text's own colour up to hot, red over it
             if (w.bands) { const bv = this._raw(w.bands.signal); if (isNum(bv)) role = bv < w.bands.cold ? VERDICT.COLD : bv > w.bands.hot ? 'hot' : role; }
+            // "valueColors" { text: role }: the colour by what it shows (AWD blue / RWD red); "cold" = the cold blue
+            if (w.valueColors && w.valueColors[s]) role = w.valueColors[s] === 'cold' ? VERDICT.COLD : w.valueColors[s];
             // over its warning limit: the value flashes in the shift red
             // ("warnFlash": false: not on a tile that turns red itself, the Dyno theme's)
             if (w.warnFlash !== false && this._warning(w) && Math.floor(now / WARN_FLASH_MS) % 2 === 0) role = 'hot';
