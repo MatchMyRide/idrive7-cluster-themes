@@ -2385,6 +2385,7 @@ class HudApp {
             // "hex" { edge, middle, at: [x, y] target px }: a honeycomb over the fill, brighter round the middle
             const hx = w.hex;
             c.uniform(ref, 'u_hex', hx ? [hx.edge, hx.middle, hx.at[0] - w.x, hx.at[1] - w.y] : [0, 0, 0, 0]);
+            c.uniform(ref, 'u_hexClear', hx && hx.clear ? [hx.clear[0] - w.x, hx.clear[1] - w.y, hx.clear[2]] : [0, 0, 0]);   // "clear": [x, y, r] target px, kept dark
         } else if (w.type === 'bgauge') {     // Hyper's round gauges (shaders.js bgauge): "measure" rpm, else "signal" between "min" and "max"
             const rpm = w.measure === 'rpm', max = rpm ? this._barMax(w) : w.max;
             c.uniform(ref, 'u_size', [w.w, w.h]);
