@@ -1066,11 +1066,11 @@
       "font": "sc_word",
       "color": "fg",
       "id": "vl_state",
-      "x": 1690,
+      "x": 1540,
       "y": 330,
-      "w": 190,
+      "w": 200,
       "text": "{{flap}}",
-      "align": "right",
+      "align": "left",
       "valueColors": {
         "OPEN": "hot",
         "CLOSED": "cold"

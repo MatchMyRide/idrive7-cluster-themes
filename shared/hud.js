@@ -1750,14 +1750,14 @@ class HudApp {
             case 'u:torque': return us ? 'lb-ft' : 'Nm';
             case 'drivetrain': {     // AWD / RWD: the transfer case's state, else whether the split moves
                 if (isNum(this.lmvQ) && Date.now() - this.lmvAt < LMV_STALE_MS) return (this.lmvQ & 0xC0) === 0xC0 ? 'RWD' : 'AWD';
-                return this.car.data().demo ? 'AWD' : '--';
+                return this.car.data().demo ? (Math.floor(Date.now() / 6000) % 2 ? 'RWD' : 'AWD') : '--';   // the demo shows both
             }
             case 'rearPct': case 'frontPct': {
                 const r = this._raw('rearPct');
                 return isNum(r) ? String(Math.round(tok === 'rearPct' ? r : 100 - r)) : '--';
             }
             case 'flap': {           // the exhaust flap: OPEN / CLOSED, AUTO while the engine unit moves it
-                const p = isNum(this.flapPct) && Date.now() - this.flapAt < FLAP_STALE_MS ? this.flapPct : this.car.data().demo ? 0 : null;
+                const p = isNum(this.flapPct) && Date.now() - this.flapAt < FLAP_STALE_MS ? this.flapPct : this.car.data().demo ? [0, 50, 100][Math.floor(Date.now() / 4000) % 3] : null;
                 return !isNum(p) ? '--' : p <= 20 ? 'OPEN' : p >= 80 ? 'CLOSED' : 'AUTO';
             }
             case 'powerPS': {        // metric horsepower (PS) from the crank torque and rpm
