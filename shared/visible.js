@@ -23,7 +23,7 @@ const BLACK_BOX = [1406, 342, 1597, 419];
 const BOX_OVER = false;
 /** BMW content above its bottom strip that a theme's backdrop leaves see-through (G23 M440i photos, Nov 14 2026):
  *  the speed limit sign (bottom left) and the drive mode in the strip, whose tops reach over y 660. [x0, y0, x1, y1] */
-const KEEP = [[495, 570, 585, 660], [1195, 628, 1315, 660]];
+const KEEP = [[495, 570, 585, 660], [1195, 642, 1315, 660]];
 /** BMW's seat-belt warning light is drawn over us here: [x0, y0, x1, y1]. */
 const BELT = [587, 663, 626, 700];
 /** The part of the 800x480 HUD target seen through the windshield: BMW's own height-adjust frame (car photo Nov 7,

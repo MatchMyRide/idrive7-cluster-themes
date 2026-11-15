@@ -289,8 +289,10 @@ uniform vec2 u_size;
 uniform vec4 u_cut0;      // BMW content kept visible (bottom strip): see-through rounded rect x, y, w, h layer px, w 0 = none
 uniform vec4 u_cut1;
 float cutA(vec4 r) {
-    vec2 d = abs(v_uv * u_size - r.xy - r.zw * 0.5) - r.zw * 0.5;
-    return r.z > 0.0 ? clamp(max(d.x, d.y) + 0.5, 0.0, 1.0) : 1.0;
+    // rounded: a square cut (the speed sign) is a circle, a flat one (the drive mode) gets soft corners
+    float rr = min(r.z, r.w) * 0.5;
+    vec2 d = abs(v_uv * u_size - r.xy - r.zw * 0.5) - r.zw * 0.5 + rr;
+    return r.z > 0.0 ? clamp(length(max(d, 0.0)) + min(max(d.x, d.y), 0.0) - rr + 0.5, 0.0, 1.0) : 1.0;
 }
 uniform vec4 u_color;
 uniform vec4 u_hole;
@@ -355,8 +357,10 @@ uniform vec2 u_size;
 uniform vec4 u_cut0;      // BMW content kept visible (bottom strip): see-through rounded rect x, y, w, h layer px, w 0 = none
 uniform vec4 u_cut1;
 float cutA(vec4 r) {
-    vec2 d = abs(v_uv * u_size - r.xy - r.zw * 0.5) - r.zw * 0.5;
-    return r.z > 0.0 ? clamp(max(d.x, d.y) + 0.5, 0.0, 1.0) : 1.0;
+    // rounded: a square cut (the speed sign) is a circle, a flat one (the drive mode) gets soft corners
+    float rr = min(r.z, r.w) * 0.5;
+    vec2 d = abs(v_uv * u_size - r.xy - r.zw * 0.5) - r.zw * 0.5 + rr;
+    return r.z > 0.0 ? clamp(length(max(d, 0.0)) + min(max(d.x, d.y), 0.0) - rr + 0.5, 0.0, 1.0) : 1.0;
 }
 uniform vec4 u_bg;
 uniform vec4 u_hole;
@@ -775,8 +779,10 @@ uniform vec2 u_size;
 uniform vec4 u_cut0;      // BMW content kept visible (bottom strip): see-through rounded rect x, y, w, h layer px, w 0 = none
 uniform vec4 u_cut1;
 float cutA(vec4 r) {
-    vec2 d = abs(v_uv * u_size - r.xy - r.zw * 0.5) - r.zw * 0.5;
-    return r.z > 0.0 ? clamp(max(d.x, d.y) + 0.5, 0.0, 1.0) : 1.0;
+    // rounded: a square cut (the speed sign) is a circle, a flat one (the drive mode) gets soft corners
+    float rr = min(r.z, r.w) * 0.5;
+    vec2 d = abs(v_uv * u_size - r.xy - r.zw * 0.5) - r.zw * 0.5 + rr;
+    return r.z > 0.0 ? clamp(length(max(d, 0.0)) + min(max(d.x, d.y), 0.0) - rr + 0.5, 0.0, 1.0) : 1.0;
 }
 uniform vec4 u_geo;       // outer line: y at the top, y at the bend, y at the bottom, x at the bend (left side)
 uniform vec3 u_k;         // x per y px above the bend, below it, bend roundness px
@@ -1458,8 +1464,10 @@ uniform vec2 u_size;
 uniform vec4 u_cut0;      // BMW content kept visible (bottom strip): see-through rounded rect x, y, w, h layer px, w 0 = none
 uniform vec4 u_cut1;
 float cutA(vec4 r) {
-    vec2 d = abs(v_uv * u_size - r.xy - r.zw * 0.5) - r.zw * 0.5;
-    return r.z > 0.0 ? clamp(max(d.x, d.y) + 0.5, 0.0, 1.0) : 1.0;
+    // rounded: a square cut (the speed sign) is a circle, a flat one (the drive mode) gets soft corners
+    float rr = min(r.z, r.w) * 0.5;
+    vec2 d = abs(v_uv * u_size - r.xy - r.zw * 0.5) - r.zw * 0.5 + rr;
+    return r.z > 0.0 ? clamp(length(max(d, 0.0)) + min(max(d.x, d.y), 0.0) - rr + 0.5, 0.0, 1.0) : 1.0;
 }
 uniform float u_mode;
 uniform vec4 u_bg;
@@ -1662,8 +1670,10 @@ uniform vec3 u_circ;
 uniform vec4 u_cut0;      // BMW content kept visible (visible.KEEP): see-through rects x, y, w, h layer px
 uniform vec4 u_cut1;
 float cutA(vec4 r) {
-    vec2 d = abs(v_uv * u_size - r.xy - r.zw * 0.5) - r.zw * 0.5;
-    return r.z > 0.0 ? clamp(max(d.x, d.y) + 0.5, 0.0, 1.0) : 1.0;
+    // rounded: a square cut (the speed sign) is a circle, a flat one (the drive mode) gets soft corners
+    float rr = min(r.z, r.w) * 0.5;
+    vec2 d = abs(v_uv * u_size - r.xy - r.zw * 0.5) - r.zw * 0.5 + rr;
+    return r.z > 0.0 ? clamp(length(max(d, 0.0)) + min(max(d.x, d.y), 0.0) - rr + 0.5, 0.0, 1.0) : 1.0;
 }     // panel: a round cut-out x, y, r in layer px (r 0 = none): the edge then follows the circle
 
 void main() {
