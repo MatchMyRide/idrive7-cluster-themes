@@ -55,6 +55,22 @@
       "hex": false
     },
     {
+      "id": "gstrip_bg",
+      "type": "fill",
+      "class": "content",
+      "z": 2,
+      "x": 480,
+      "y": 440,
+      "w": 960,
+      "h": 62,
+      "color": "strip",
+      "fade": [
+        300,
+        16
+      ],
+      "conn": 0
+    },
+    {
       "id": "nl_top",
       "type": "nline",
       "class": "content",

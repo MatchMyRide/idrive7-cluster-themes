@@ -2378,6 +2378,7 @@ class HudApp {
         } else if (w.type === 'fill') {
             c.uniform(ref, 'u_size', [w.w, w.h]);
             c.uniform(ref, 'u_color', rgba(color(t, w.color || 'bg')));
+            c.uniform(ref, 'u_fade', w.fade || [0, 0]);   // "fade": [x, y] px soft edges (a bar running out into black)
             const hc = w.holeCircle;   // the hole's shape: a round bite [x, y, r] in target px, chamfered corners holeCut px
             c.uniform(ref, 'u_holeC', [hc ? hc[0] - w.x : 0, hc ? hc[1] - w.y : 0, hc ? hc[2] : 0, w.holeCut || 0]);
             c.uniform(ref, 'u_hole', this._hole(w));

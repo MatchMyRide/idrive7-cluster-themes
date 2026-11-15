@@ -299,11 +299,14 @@ uniform vec4 u_hole;
 uniform float u_holeR;
 uniform vec4 u_hex;       // a honeycomb (30 px cells): alpha at the edges, alpha at the middle, the middle x, y (layer px); x 0 = none
 uniform vec3 u_hexClear;  // no honeycomb inside this circle x, y, r (layer px; r 0 = none), fading in over 50 px
+uniform vec2 u_fade;      // soft edges: x px from the left and right, y px from the top and bottom (0 = hard)
 uniform vec4 u_holeC;     // the hole's shape: a round bite x, y, r (layer px, r 0 = none) and corners chamfered w px
 
 void main() {
     vec2 p = vec2(v_uv.x * u_size.x, v_uv.y * u_size.y);
     float a = u_color.a;
+    if (u_fade.x > 0.0) a *= smoothstep(0.0, u_fade.x, p.x) * smoothstep(0.0, u_fade.x, u_size.x - p.x);
+    if (u_fade.y > 0.0) a *= smoothstep(0.0, u_fade.y, p.y) * smoothstep(0.0, u_fade.y, u_size.y - p.y);
     if (u_hole.z > 0.0) {
         vec2 hs = u_hole.zw * 0.5;
         vec2 q = abs(p - (u_hole.xy + hs)) - (hs - vec2(u_holeR));
