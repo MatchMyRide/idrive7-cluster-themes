@@ -4,7 +4,7 @@
  * Each icon is a distance function in a 0..1 box; coverage is anti-aliased over one pixel.
  *   gauge (engine), shock (chassis), wheel (steering), cog (gearbox), stack (the gear's shift program
  *   lines), therm (coolant), oilcan (oil), fuel (pump), tyre (a wheel seen from the side: ring, hub, tread notches),
- *   engine (the engine-block pictogram), drivetrain (two axles and the shaft from above), exhaust (silencer, tailpipe, puffs).
+ *   engine (the engine-block pictogram), drivetrain (two axles and the shaft from above), exhaust (twin tailpipes over the bumper line, BMW's flap symbol).
  */
 function seg(px, py, ax, ay, bx, by) {
     const pax = px - ax, pay = py - ay, bax = bx - ax, bay = by - ay;
@@ -46,8 +46,12 @@ const ICONS = {
     drivetrain: (x, y) => Math.min(seg(x, y, 0.12, 0.13, 0.12, 0.37) - 0.07, seg(x, y, 0.88, 0.13, 0.88, 0.37) - 0.07,
         seg(x, y, 0.12, 0.63, 0.12, 0.87) - 0.07, seg(x, y, 0.88, 0.63, 0.88, 0.87) - 0.07,
         seg(x, y, 0.12, 0.25, 0.88, 0.25) - 0.035, seg(x, y, 0.12, 0.75, 0.88, 0.75) - 0.035, seg(x, y, 0.5, 0.25, 0.5, 0.75) - 0.04),
-    exhaust: (x, y) => Math.min(seg(x, y, 0.22, 0.58, 0.52, 0.58) - 0.15, seg(x, y, 0.6, 0.62, 0.8, 0.62) - 0.045,
-        ring(x, y, 0.9, 0.38, 0.06) - 0.03, ring(x, y, 0.78, 0.24, 0.05) - 0.025),
+    // exhaust: the exhaust-flap pictogram - two round tailpipes over the bumper line, which runs down to the left
+    exhaust: (x, y) => {
+        const oval = (cx, cy, rx, ry) => Math.abs(Math.hypot((x - cx) / rx, (y - cy) / ry) - 1) * Math.min(rx, ry);
+        return Math.min(oval(0.44, 0.42, 0.12, 0.1) - 0.035, oval(0.77, 0.42, 0.12, 0.1) - 0.035,
+            seg(x, y, 0.08, 0.84, 0.3, 0.66) - 0.035, seg(x, y, 0.3, 0.66, 0.94, 0.66) - 0.035);
+    },
     oilcan: (x, y) => Math.min(seg(x, y, 0.2, 0.62, 0.6, 0.62) - 0.12, seg(x, y, 0.6, 0.58, 0.9, 0.44) - 0.04, disc(x, y, 0.92, 0.66, 0.05), seg(x, y, 0.3, 0.46, 0.3, 0.34) - 0.035, seg(x, y, 0.22, 0.34, 0.38, 0.34) - 0.04),
 };
 
