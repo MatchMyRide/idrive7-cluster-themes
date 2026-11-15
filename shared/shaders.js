@@ -1559,13 +1559,6 @@ uniform vec3 u_fg;
 uniform vec3 u_hot;
 const float TAU = 6.2831853;
 
-float hexEdge(vec2 p, float s) {
-    p /= s;
-    vec2 r = vec2(1.0, 1.7320508), h = r * 0.5;
-    vec2 a = mod(p, r) - h, b = mod(p - h, r) - h;
-    vec2 g = abs(dot(a, a) < dot(b, b) ? a : b);
-    return (0.5 - max(dot(g, vec2(0.5, 0.8660254)), g.x)) * s;
-}
 
 void main() {
     vec2 p = v_uv * u_size, d = p - u_center;
@@ -1577,7 +1570,15 @@ void main() {
     float f = rel / u_sweep;
     float rIn = u_r - u_band;
     vec4 c = vec4(0.0);
-    if (u_hex > 0.5 && dist < rIn - 36.0) c = vec4(u_fg, 0.14 * (1.0 - smoothstep(0.0, 1.6, hexEdge(p, 30.0))));
+    if (u_hex > 0.5 && dist < rIn - 36.0) {
+        // a honeycomb (cells 30 px): the distance to the nearer of two offset grids' cell centres
+        vec2 hp = p / 30.0, hr = vec2(1.0, 1.7320508), hh = hr * 0.5;
+        vec2 ha = mod(hp, hr) - hh, hb = mod(hp - hh, hr) - hh;
+        float pick = step(dot(hb, hb), dot(ha, ha));     // 1: hb is nearer
+        vec2 hg = abs(mix(ha, hb, pick));
+        float he = (0.5 - max(dot(hg, vec2(0.5, 0.8660254)), hg.x)) * 30.0;
+        c = vec4(u_fg, 0.14 * (1.0 - smoothstep(0.0, 1.6, he)));
+    }
     if (f <= 1.0) {
         float px = u_sweep * dist;                       // px along the arc per unit of f, here
         if (dist >= rIn && dist <= u_r) {
@@ -1630,7 +1631,7 @@ void main() {
         c = mix(c, vec4(f >= u_redAt ? u_hot : u_fg, 0.9), dots * (1.0 - la));
     }
     if (u_ring > 0.0 && f <= 1.0) {
-        float rd = abs(dist - u_ring), fade = smoothstep(0.0, 0.25, f) * smoothstep(1.0, 0.75, f);
+        float rd = abs(dist - u_ring), fade = smoothstep(0.0, 0.25, f) * (1.0 - smoothstep(0.75, 1.0, f));
         float ring = ((1.0 - smoothstep(0.6, 1.6, rd)) + exp(-rd / 7.0) * 0.5) * fade;
         c = mix(c, vec4(u_hot, 1.0), clamp(ring, 0.0, 1.0) * (1.0 - c.a * 0.5));
     }
@@ -1666,7 +1667,7 @@ void main() {
     vec3 lc = mix(u_line, u_line2, smoothstep(0.25, 0.85, v_uv.x));
     if (u_mode > 0.5) {
         float d = abs(px.y - u_size.y * 0.5);
-        float ends = smoothstep(0.0, 0.12, v_uv.x) * smoothstep(1.0, 0.88, v_uv.x);
+        float ends = smoothstep(0.0, 0.12, v_uv.x) * (1.0 - smoothstep(0.88, 1.0, v_uv.x));
         float a = (1.0 - smoothstep(0.8, 1.8, d) + exp(-d / u_glow) * 0.55) * ends;
         gl_FragColor = vec4(mix(lc, vec3(1.0), (1.0 - smoothstep(0.0, 0.9, d)) * 0.5), min(a, 1.0) * cutA(u_cut0) * cutA(u_cut1));
         return;
