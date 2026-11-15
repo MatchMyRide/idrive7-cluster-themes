@@ -2382,6 +2382,9 @@ class HudApp {
             c.uniform(ref, 'u_holeC', [hc ? hc[0] - w.x : 0, hc ? hc[1] - w.y : 0, hc ? hc[2] : 0, w.holeCut || 0]);
             c.uniform(ref, 'u_hole', this._hole(w));
             c.uniform(ref, 'u_holeR', [this._holeRadius(w)]); this._cuts(c, ref, w);
+            // "hex" { edge, middle, at: [x, y] target px }: a honeycomb over the fill, brighter round the middle
+            const hx = w.hex;
+            c.uniform(ref, 'u_hex', hx ? [hx.edge, hx.middle, hx.at[0] - w.x, hx.at[1] - w.y] : [0, 0, 0, 0]);
         } else if (w.type === 'bgauge') {     // Hyper's round gauges (shaders.js bgauge): "measure" rpm, else "signal" between "min" and "max"
             const rpm = w.measure === 'rpm', max = rpm ? this._barMax(w) : w.max;
             c.uniform(ref, 'u_size', [w.w, w.h]);

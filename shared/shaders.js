@@ -297,6 +297,7 @@ float cutA(vec4 r) {
 uniform vec4 u_color;
 uniform vec4 u_hole;
 uniform float u_holeR;
+uniform vec4 u_hex;       // a honeycomb (30 px cells): alpha at the edges, alpha at the middle, the middle x, y (layer px); x 0 = none
 uniform vec4 u_holeC;     // the hole's shape: a round bite x, y, r (layer px, r 0 = none) and corners chamfered w px
 
 void main() {
@@ -310,7 +311,16 @@ void main() {
         if (u_holeC.z > 0.0) d = max(d, u_holeC.z - length((p - u_holeC.xy) / 64.0) * 64.0);
         a *= clamp(d + 0.5, 0.0, 1.0);
     }
-    gl_FragColor = vec4(u_color.rgb, a);
+    vec3 rgb = u_color.rgb;
+    if (u_hex.x > 0.0) {
+        vec2 hp = p / 30.0, hr = vec2(1.0, 1.7320508), hh = hr * 0.5;
+        vec2 ha = mod(hp, hr) - hh, hb = mod(hp - hh, hr) - hh;
+        vec2 hg = abs(mix(ha, hb, step(dot(hb, hb), dot(ha, ha))));
+        float he = (0.5 - max(dot(hg, vec2(0.5, 0.8660254)), hg.x)) * 30.0;
+        float hm = mix(u_hex.y, u_hex.x, smoothstep(140.0, 820.0, length((p - u_hex.zw) / 64.0) * 64.0));
+        rgb = mix(rgb, vec3(0.94, 0.96, 0.98), hm * (1.0 - smoothstep(0.0, 1.6, he)));
+    }
+    gl_FragColor = vec4(rgb, a);
     gl_FragColor.a *= cutA(u_cut0) * cutA(u_cut1);
 }
 `;

@@ -15,7 +15,15 @@
       "w": 1920,
       "h": 660,
       "color": "bg",
-      "conn": 0
+      "conn": 0,
+      "hex": {
+        "edge": 0.12,
+        "middle": 0.3,
+        "at": [
+          960,
+          430
+        ]
+      }
     },
     {
       "id": "revs",
@@ -38,7 +46,8 @@
       "blocks": 28,
       "warnFrom": 5000,
       "tint": "tint",
-      "ring": 0
+      "ring": 0,
+      "hex": false
     },
     {
       "id": "nl_top",
@@ -133,8 +142,8 @@
         ]
       ],
       "glow": 7,
-      "line": "neonRed",
-      "line2": "neonRed",
+      "line": "fg",
+      "line2": "fg",
       "conn": 2
     },
     {
@@ -149,8 +158,8 @@
       "head": 0,
       "glow": 6,
       "fill": "pfill",
-      "line": "neonRed",
-      "line2": "neonRed",
+      "line": "fg",
+      "line2": "fg",
       "conn": 1,
       "circle": [
         960,
@@ -180,8 +189,8 @@
       "head": 0,
       "glow": 6,
       "fill": "pfill",
-      "line": "neonRed",
-      "line2": "neonRed",
+      "line": "fg",
+      "line2": "fg",
       "conn": 3,
       "circle": [
         960,
@@ -1053,7 +1062,7 @@
       "font": "sc_label",
       "color": "fg",
       "id": "vl_head",
-      "x": 1578,
+      "x": 1538,
       "y": 302,
       "w": 200,
       "text": "EXHAUST VALVE"
@@ -1066,7 +1075,7 @@
       "font": "sc_word",
       "color": "fg",
       "id": "vl_state",
-      "x": 1540,
+      "x": 1526,
       "y": 330,
       "w": 200,
       "text": "{{flap}}",
@@ -1110,7 +1119,7 @@
       "color": "accent",
       "id": "ic_valve",
       "icon": "exhaust",
-      "x": 1540,
+      "x": 1500,
       "y": 298,
       "conn": 3
     }
