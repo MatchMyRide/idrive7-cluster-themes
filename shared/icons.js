@@ -46,14 +46,14 @@ const ICONS = {
     drivetrain: (x, y) => Math.min(seg(x, y, 0.12, 0.13, 0.12, 0.37) - 0.07, seg(x, y, 0.88, 0.13, 0.88, 0.37) - 0.07,
         seg(x, y, 0.12, 0.63, 0.12, 0.87) - 0.07, seg(x, y, 0.88, 0.63, 0.88, 0.87) - 0.07,
         seg(x, y, 0.12, 0.25, 0.88, 0.25) - 0.035, seg(x, y, 0.12, 0.75, 0.88, 0.75) - 0.035, seg(x, y, 0.5, 0.25, 0.5, 0.75) - 0.04),
-    // exhaust: BMW's exhaust-flap button - the bumper's rounded cut-out with two round tailpipes in it, tilted a little
+    // exhaust: BMW's exhaust-flap button - the bumper's rounded cut-out with two round tailpipes in it
     exhaust: (x0, y0) => {
-        const t = -0.2, x = 0.5 + (x0 - 0.5) * Math.cos(t) - (y0 - 0.5) * Math.sin(t), y = 0.5 + (x0 - 0.5) * Math.sin(t) + (y0 - 0.5) * Math.cos(t);
+        const t = 0, x = 0.5 + (x0 - 0.5) * Math.cos(t) - (y0 - 0.5) * Math.sin(t), y = 0.5 + (x0 - 0.5) * Math.sin(t) + (y0 - 0.5) * Math.cos(t);
         // the cut-out: its top and sides only (a hood over the pipes), open below their middle
         const qx = Math.abs(x - 0.5) - 0.44 + 0.22, qy = Math.abs(y - 0.5) - 0.34 + 0.22;
         const frame = Math.max(Math.abs(Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - 0.22) - 0.04, y - 0.66);
-        const pipe = (cx) => Math.abs(Math.hypot((x - cx) / 0.15, (y - 0.6) / 0.165) - 1) * 0.15 - 0.05;
-        return Math.min(frame, pipe(0.31), pipe(0.69));
+        const pipe = (cx) => Math.abs(Math.hypot((x - cx) / 0.14, (y - 0.6) / 0.16) - 1) * 0.14 - 0.045;
+        return Math.min(frame, pipe(0.28), pipe(0.72));
     },
     oilcan: (x, y) => Math.min(seg(x, y, 0.2, 0.62, 0.6, 0.62) - 0.12, seg(x, y, 0.6, 0.58, 0.9, 0.44) - 0.04, disc(x, y, 0.92, 0.66, 0.05), seg(x, y, 0.3, 0.46, 0.3, 0.34) - 0.035, seg(x, y, 0.22, 0.34, 0.38, 0.34) - 0.04),
 };
