@@ -305,7 +305,7 @@ void main() {
         vec2 q = abs(p - (u_hole.xy + hs)) - (hs - vec2(u_holeR));
         float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - u_holeR;
         if (u_holeC.w > 0.0) { vec2 o = abs(p - (u_hole.xy + hs)); d = max(d, (o.x + o.y - (hs.x + hs.y - u_holeC.w)) * 0.7071); }
-        if (u_holeC.z > 0.0) d = max(d, u_holeC.z - length(p - u_holeC.xy));
+        if (u_holeC.z > 0.0) d = max(d, u_holeC.z - length((p - u_holeC.xy) / 64.0) * 64.0);
         a *= clamp(d + 0.5, 0.0, 1.0);
     }
     gl_FragColor = vec4(u_color.rgb, a);
@@ -1250,7 +1250,7 @@ const float PI = 3.14159265359;
 
 void main() {
     vec2 d = v_uv * u_size - u_center;
-    float rr = length(d);
+    float rr = length(d / 64.0) * 64.0;
     float inner = u_r - u_w;
     float edge = clamp(rr - inner + 0.5, 0.0, 1.0) * clamp(u_r - rr + 0.5, 0.0, 1.0);
     if (edge <= 0.0) { gl_FragColor = vec4(0.0); return; }
@@ -1479,7 +1479,7 @@ bool keep(vec2 c, float m) { return inR(c, u_k0, m) || inR(c, u_k1, m) || inR(c,
 // one firework burst at c, radius r: 28 rays from 0.25 r out to 0.8..1.05 r, a dot at each tip, a faint glow
 float burst(vec2 p, vec2 c, float r) {
     vec2 d = p - c;
-    float rr = length(d), st = 6.2831853 / 28.0;
+    float rr = length(d / 64.0) * 64.0, st = 6.2831853 / 28.0;
     float i = floor(atan(d.y, d.x) / st + 0.5);
     float tip = r * (0.8 + 0.25 * h1(vec2(i, r)));
     float a = 0.0;
@@ -1536,7 +1536,11 @@ const SCARC = `// The Supercar theme's rev arc (GLSL ES 1.00), one layer: a dott
 //   u_redAt 0..1, u_majors count, u_flash 1 = at the shift point (the lit band goes red), u_fg / u_hot rgb
 //   u_blocks > 0: the band is that many thick blocks instead (shaded lighter outwards, lit ones light grey, the red
 //   zone red), and no dotted ring
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
 precision mediump float;
+#endif
 varying vec2 v_uv;
 uniform vec2 u_size;
 uniform vec2 u_center;
@@ -1562,7 +1566,7 @@ const float TAU = 6.2831853;
 
 void main() {
     vec2 p = v_uv * u_size, d = p - u_center;
-    float dist = length(d);
+    float dist = length(d / 64.0) * 64.0;   // scaled: the radius squared overflows mediump on the car GPU
     float ang = atan(d.x, -d.y);
     if (ang < 0.0) ang += TAU;
     float rel = ang - u_start;
@@ -1676,7 +1680,7 @@ void main() {
     vec2 q = abs(p) - b;
     float box = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
     float d = max(box, (abs(p.x) + abs(p.y) - (b.x + b.y - u_cut)) * 0.7071);
-    if (u_circ.z > 0.0) d = max(d, u_circ.z - length(px - u_circ.xy));
+    if (u_circ.z > 0.0) d = max(d, u_circ.z - length((px - u_circ.xy) / 64.0) * 64.0);
     float inside = 1.0 - smoothstep(-0.5, 0.5, d);
     vec4 c = vec4(u_fill.rgb, u_fill.a * inside * (1.0 - 0.55 * v_uv.y));
     float line = 1.0 - smoothstep(0.7, 1.7, abs(d));
@@ -1751,7 +1755,7 @@ const float TAU = 6.2831853;
 
 void main() {
     vec2 p = v_uv * u_size, d = p - u_center;
-    float dist = length(d);
+    float dist = length(d / 64.0) * 64.0;
     float ang = atan(d.x, -d.y);
     if (ang < 0.0) ang += TAU;
     float rel = ang - u_start;
