@@ -60,7 +60,8 @@ CLUSTER_FONTS = [
     ('sc_speed', 'Orbitron[wght].ttf', 104, DIGITS + '-', 0, 'Black', {'0': 'O'}, '', 0.2, 0),
     ('sc_val', 'Orbitron[wght].ttf', 34, DIGITS + '.:-+', 0, 'Bold', {'0': 'O'}, '', 0.2, 0),
     ('sc_word', 'Orbitron[wght].ttf', 30, UPPER + DIGITS + ' %/-', 0, 'Bold', {'0': 'O'}, '', 0.2, 0),   # Supercar: AWD / RWD, the flap
-    ('sc_badge', 'Orbitron[wght].ttf', 46, UPPER + LOWER + DIGITS + ' -', 0, 'Black', {'0': 'O'}, '', 0.2, 0),   # Supercar: the model badge
+    ('sc_badge', 'Outfit[wght].ttf', 56, UPPER + LOWER + DIGITS + ' -', 0, 'Black', None, '', 0, 0),   # Supercar: the model badge (upright)
+    ('sc_badgeM', 'Outfit[wght].ttf', 56, 'M', 0, 'Black', None, '', 0.3, 0),   # its leading M, slanted like the colour bars
     ('sc_label', 'Orbitron[wght].ttf', 18, UPPER + DIGITS + '/°%.:- ', 0, 'Bold', {'0': 'O'}, '', 0.2, 0),
     ('m_num', 'Orbitron[wght].ttf', 36, DIGITS, 0, 'Black', {'0': 'O'}),
     ('m_gear', 'Orbitron[wght].ttf', 125, 'PRNDSM-' + DIGITS, 3, 'Black', {'0': 'O'}),

@@ -1725,6 +1725,11 @@ class HudApp {
             case 'runLabel': return us ? '0-60 MPH' : '0-100 KM/H';
             case 'warm': { const o = this._raw('oil'); return isNum(o) ? (o < 80 ? 'WARMING UP' : 'ENGINE WARM') : ''; }
             case 'badge': return badges.text(this.setting('badge'), this.setting('badgeBMW') === true);
+            // an M model's badge split for the M emblem look: the leading M (slanted, beside the colour bars) and the rest
+            case 'badgeM': case 'badgeRest': {
+                const b = badges.text(this.setting('badge'), this.setting('badgeBMW') === true), m = /^M[0-9]/.test(b);
+                return tok === 'badgeM' ? (m ? 'M' : '') : m ? b.slice(1) : b;
+            }
             case 'speed': { const v = this._raw('speed'); return fix(isNum(v) ? (us ? v * 0.621371 : v) : v, 0); }
             case 'u:speed': return us ? 'MPH' : 'KM/H';
             case 'oil': case 'coolant': case 'gearOil': { const v = this._raw(tok); return fix(isNum(v) ? (us ? v * 9 / 5 + 32 : v) : v, 0); }
@@ -2599,8 +2604,8 @@ class HudApp {
             x.c.uniform(x.ref, 'u_text', this._atlasCodes(x, s), { type: 'vec4' });
         } else if (w.type === 'nav') this._navUpdate(x, now, force);
         else if (w.type === 'garland') this._garlandTick(x, now);
-        else if (w.type === 'stripe' && (w.navHide || w.withBadge)) {
-            const on = !(w.navHide && this.navShown) && !(w.withBadge && !this._token('badge'));
+        else if (w.type === 'stripe' && (w.navHide || w.withBadge || w.withM)) {
+            const on = !(w.navHide && this.navShown) && !(w.withBadge && !this._token('badge')) && !(w.withM && !this._token('badgeM'));
             if (on !== x.navOn) this._paintStripe(x);
         }
         else if (w.type === 'text') {
@@ -2960,7 +2965,7 @@ class HudApp {
      *  a 1 px gap between them). "navHide": empty while a turn shows; "withBadge": empty while no badge is picked. */
     _paintStripe(x) {
         const w = x.w, buf = Buffer.alloc(w.w * w.h * 4, 0), sl = w.slant || 0, bw = (w.w - sl) / 3;
-        x.navOn = !(w.navHide && this.navShown) && !(w.withBadge && !this._token('badge'));
+        x.navOn = !(w.navHide && this.navShown) && !(w.withBadge && !this._token('badge')) && !(w.withM && !this._token('badgeM'));
         if (x.navOn) {
             for (let py = 0; py < w.h; py++) {
                 const off = sl * (1 - (py + 0.5) / w.h);
