@@ -1725,7 +1725,9 @@ void main() {
     float glow = exp(-abs(d) / u_glow) * 0.6;
     float hy = abs(px.y - (m.y + u_head));
     float head = u_head > 0.0 ? (1.0 - smoothstep(0.5, 1.3, hy)) * inside * 0.7 : 0.0;
-    float bar = u_head > 0.0 ? step(hy, 2.0) * step(m.x + u_cut * 0.6, px.x) * step(px.x, m.x + u_cut * 0.6 + 40.0) : 0.0;
+    // the bar sits at the end away from a round cut-out: at the right end of a panel whose circle lies to its left
+    float bx = u_circ.z > 0.0 && u_circ.x < u_size.x * 0.5 ? u_size.x - px.x : px.x;
+    float bar = u_head > 0.0 ? step(hy, 2.0) * step(m.x + u_cut * 0.6, bx) * step(bx, m.x + u_cut * 0.6 + 40.0) : 0.0;
     c = mix(c, vec4(lc, 1.0), clamp(max(glow, head), 0.0, 1.0));
     c = mix(c, vec4(mix(lc, vec3(1.0), 0.35), 1.0), max(line, bar));
     // the dividers: thin lines that stop short of the frame, so they follow its shape
