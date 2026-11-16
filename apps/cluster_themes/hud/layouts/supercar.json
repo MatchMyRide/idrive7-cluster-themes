@@ -234,9 +234,9 @@
       "type": "hframe",
       "class": "content",
       "z": 1,
-      "x": 1300,
+      "x": 1210,
       "y": 92,
-      "w": 408,
+      "w": 458,
       "h": 104,
       "head": 0,
       "glow": 6,
@@ -245,18 +245,18 @@
       "line2": "fg",
       "cuts": [
         24,
-        180,
+        120,
         16,
-        24
+        60
       ],
       "conn": 3,
       "toggle": "!navDirections=off",
       "showWhen": "nav",
       "cutsV": [
         0,
-        50,
+        24,
         0,
-        0
+        50
       ]
     },
     {
@@ -1125,10 +1125,10 @@
     {
       "id": "nav",
       "type": "nav",
-      "x": 1318,
+      "x": 1268,
       "y": 106,
-      "w": 190,
-      "h": 72,
+      "w": 200,
+      "h": 76,
       "toggle": "!navDirections=off",
       "class": "overlay",
       "z": 20,
@@ -1144,7 +1144,7 @@
       "font": "sc_label",
       "color": "dim",
       "id": "nd_head",
-      "x": 1512,
+      "x": 1500,
       "y": 154,
       "w": 160,
       "text": "{{navDestH}}"
@@ -1157,9 +1157,9 @@
       "font": "sc_val",
       "color": "fg",
       "id": "nd_val",
-      "x": 1512,
+      "x": 1474,
       "y": 116,
-      "w": 76,
+      "w": 122,
       "text": "{{navDest}}",
       "align": "right"
     },
@@ -1171,7 +1171,7 @@
       "font": "sc_label",
       "color": "dim",
       "id": "nd_unit",
-      "x": 1594,
+      "x": 1602,
       "y": 126,
       "w": 40,
       "text": "{{navDestU}}"

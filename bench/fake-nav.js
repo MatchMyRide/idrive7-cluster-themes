@@ -26,7 +26,7 @@ const SCENARIOS = {
     roundabout: { from: 300, events: (m) => [{ roundabout: { uid: 2, exitNumber: 3, exitAngle: 270, driveDirection: 'RIGHT', formattedDistance: dist(m), distanceToDestination: 12600 + m, description: road('Main Road') } }] },
     lanes: {
         from: 700,
-        events: (m) => [{ intersection: { uid: 3, direction: 'STRAIGHT_ON', formattedDistance: dist(m), distanceToDestination: 5800 + m, description: road('Harbour Bridge') } }],
+        events: (m) => [{ intersection: { uid: 3, direction: 'STRAIGHT_ON', formattedDistance: dist(m), distanceToDestination: 1248000 + m, description: road('Harbour Bridge') } }],
         lanes: { rows: [{ lanes: [lane('NONE', false, ['LEFT']), lane('STRAIGHT_ON', true), lane('STRAIGHT_ON', true, ['RIGHT']), lane('NONE', false, ['RIGHT'])],
             recommendedCarPositionLaneIndex: 1, laneMarkers: ['SOLID', 'DASHED', 'DASHED', 'DASHED', 'SOLID'] }] },
     },
