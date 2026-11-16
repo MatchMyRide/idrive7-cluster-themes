@@ -236,7 +236,7 @@
       "z": 1,
       "x": 1300,
       "y": 92,
-      "w": 300,
+      "w": 408,
       "h": 104,
       "head": 0,
       "glow": 6,
@@ -245,13 +245,19 @@
       "line2": "fg",
       "cuts": [
         24,
-        60,
-        24,
+        180,
+        16,
         24
       ],
       "conn": 3,
       "toggle": "!navDirections=off",
-      "showWhen": "nav"
+      "showWhen": "nav",
+      "cutsV": [
+        0,
+        50,
+        0,
+        0
+      ]
     },
     {
       "id": "pw_power_bar",
@@ -1120,15 +1126,55 @@
       "id": "nav",
       "type": "nav",
       "x": 1318,
-      "y": 104,
-      "w": 210,
-      "h": 80,
+      "y": 106,
+      "w": 190,
+      "h": 72,
       "toggle": "!navDirections=off",
       "class": "overlay",
       "z": 20,
       "color": "fg",
       "align": "right",
       "conn": 2
+    },
+    {
+      "type": "text",
+      "z": 5,
+      "conn": 3,
+      "h": 20,
+      "font": "sc_label",
+      "color": "dim",
+      "id": "nd_head",
+      "x": 1512,
+      "y": 154,
+      "w": 160,
+      "text": "{{navDestH}}"
+    },
+    {
+      "type": "text",
+      "z": 5,
+      "conn": 3,
+      "h": 29,
+      "font": "sc_val",
+      "color": "fg",
+      "id": "nd_val",
+      "x": 1512,
+      "y": 116,
+      "w": 76,
+      "text": "{{navDest}}",
+      "align": "right"
+    },
+    {
+      "type": "text",
+      "z": 5,
+      "conn": 3,
+      "h": 20,
+      "font": "sc_label",
+      "color": "dim",
+      "id": "nd_unit",
+      "x": 1594,
+      "y": 126,
+      "w": 40,
+      "text": "{{navDestU}}"
     }
   ]
 }

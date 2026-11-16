@@ -1760,6 +1760,15 @@ class HudApp {
                 const p = isNum(this.flapPct) && Date.now() - this.flapAt < FLAP_STALE_MS ? this.flapPct : this.car.data().demo ? [0, 50, 100][Math.floor(Date.now() / 4000) % 3] : null;
                 return !isNum(p) ? '--' : p <= 20 ? 'OPEN' : p >= 80 ? 'CLOSED' : 'AUTO';
             }
+            case 'navDest': case 'navDestU': case 'navDestH': {   // the distance to the destination: 34 / 8.5 km, 850 m (mi / ft in US units)
+                const m = this.navShown && this.navM && isNum(this.navM.dtd) ? this.navM.dtd : null;
+                if (!isNum(m)) return '';
+                if (tok === 'navDestH') return 'DESTINATION';
+                const big = us ? m / 1609.344 : m / 1000, small = us ? m * 3.28084 : m;
+                const v = big >= 10 ? String(Math.round(big)) : big >= 1 || us ? big.toFixed(1) : String(Math.round(small / 10) * 10);
+                if (tok === 'navDest') return v;
+                return big >= 1 || us ? (us ? 'MI' : 'KM') : 'M';
+            }
             case 'powerPS': {        // metric horsepower (PS) from the crank torque and rpm
                 const d = this.car.data(), rpm = this._raw('rpm');
                 if (!isNum(d.torque) || !isNum(rpm)) return '--';
@@ -2428,6 +2437,8 @@ class HudApp {
             // a chamfer per corner ("cuts": top left, top right, bottom right, bottom left), dividers at target y
             const k = isNum(w.cut) ? w.cut : 22, cs = Array.isArray(w.cuts) ? w.cuts : [k, k, k, k], dv = (w.dividers || []).slice(0, 4);
             c.uniform(ref, 'u_cuts', [0, 1, 2, 3].map((i) => (isNum(cs[i]) ? cs[i] : k)));
+            const cv = Array.isArray(w.cutsV) ? w.cutsV : [];   // "cutsV": each chamfer's vertical length (0: 45 degrees)
+            c.uniform(ref, 'u_cutsV', [0, 1, 2, 3].map((i) => (isNum(cv[i]) ? cv[i] : 0)));
             c.uniform(ref, 'u_div', [0, 1, 2, 3].map((i) => (isNum(dv[i]) ? dv[i] - w.y : 0)));
             c.uniform(ref, 'u_alpha', [w.showWhen === 'nav' && !this.navShown ? 0 : 1]);   // "showWhen": "nav": only with a turn showing
             c.uniform(ref, 'u_head', [w.head || 0]);
@@ -2868,6 +2879,7 @@ class HudApp {
         const M = this._navMods(), v = this._navSource().view(this._navMode()), m = v && v.show;
         const opts = { color: color(this.theme, x.w.color || 'fg'), align: x.w.align === 'left' ? 'left' : 'right' };
         this.navShown = !!m;
+        this.navM = m || null;          // the turn shown (its dtd: metres to the destination, when the car gives it)
         // frames with "showWhen": "nav" come and go with the directions
         this.widgets.forEach((y) => { if (y.w.showWhen === 'nav' && y.ref && y.navOn !== this.navShown) { y.navOn = this.navShown; y.c.uniform(y.ref, 'u_alpha', [this.navShown ? 1 : 0]); } });
         const key = m ? M.Pic.navKey(m, opts) : '';

@@ -1682,6 +1682,7 @@ uniform vec4 u_fill;
 uniform vec3 u_line;
 uniform vec3 u_line2;
 uniform vec3 u_circ;
+uniform vec4 u_cutsV;     // panel: each chamfer's vertical length (0 = as long as its horizontal one: 45 degrees)
 uniform vec4 u_cuts;      // panel: the chamfer per corner, px: top left, top right, bottom right, bottom left
 uniform float u_alpha;    // 0..1 the whole layer (a frame shown only with the directions)
 uniform vec4 u_div;       // panel: up to four divider lines across it at these y (layer px, 0 = none)
@@ -1693,6 +1694,12 @@ float cutA(vec4 r) {
     vec2 d = abs(v_uv * u_size - r.xy - r.zw * 0.5) - r.zw * 0.5 + rr;
     return r.z > 0.0 ? clamp(length(max(d, 0.0)) + min(max(d.x, d.y), 0.0) - rr + 0.5, 0.0, 1.0) : 1.0;
 }     // panel: a round cut-out x, y, r in layer px (r 0 = none): the edge then follows the circle
+
+// a corner's chamfer, the corner turned to the top right: h px along the top, v px down the side; > 0 outside
+float chf(vec2 q, vec2 b, float h, float v) {
+    float vv = v > 0.0 ? v : h;
+    return h > 0.0 ? dot(q - vec2(b.x - h, -b.y), vec2(vv, -h)) / length(vec2(vv, h)) : -1000.0;
+}
 
 void main() {
     vec2 px = v_uv * u_size;
@@ -1708,9 +1715,9 @@ void main() {
     vec2 q = abs(p) - b;
     float box = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
     // each corner's chamfer on its own (a big one may reach past the middle of a side): top left, top right, bottom right, bottom left
-    float bb = b.x + b.y;
-    float ch = max(max(-p.x - p.y - bb + u_cuts.x, p.x - p.y - bb + u_cuts.y), max(p.x + p.y - bb + u_cuts.z, -p.x + p.y - bb + u_cuts.w));
-    float d = max(box, ch * 0.7071);
+    float ch = max(max(chf(vec2(-p.x, p.y), b, u_cuts.x, u_cutsV.x), chf(p, b, u_cuts.y, u_cutsV.y)),
+                   max(chf(vec2(p.x, -p.y), b, u_cuts.z, u_cutsV.z), chf(-p, b, u_cuts.w, u_cutsV.w)));
+    float d = max(box, ch);
     if (u_circ.z > 0.0) d = max(d, u_circ.z - length((px - u_circ.xy) / 64.0) * 64.0);
     float inside = 1.0 - smoothstep(-0.5, 0.5, d);
     vec4 c = vec4(u_fill.rgb, u_fill.a * inside * (1.0 - 0.55 * v_uv.y));

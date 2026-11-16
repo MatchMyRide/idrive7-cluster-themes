@@ -22,11 +22,11 @@ const lane = (follow, hi, others) => ({ directionToFollow: follow, directionsToF
 
 /** The scenarios: the events (first: the next turn) at metres m to go, and the lanes row (null: rows []). */
 const SCENARIOS = {
-    turn: { from: 450, events: (m) => [{ intersection: { uid: 1, direction: 'RIGHT', formattedDistance: dist(m), description: road('Example Street') } }] },
-    roundabout: { from: 300, events: (m) => [{ roundabout: { uid: 2, exitNumber: 3, exitAngle: 270, driveDirection: 'RIGHT', formattedDistance: dist(m), description: road('Main Road') } }] },
+    turn: { from: 450, events: (m) => [{ intersection: { uid: 1, direction: 'RIGHT', formattedDistance: dist(m), distanceToDestination: 34200 + m, description: road('Example Street') } }] },
+    roundabout: { from: 300, events: (m) => [{ roundabout: { uid: 2, exitNumber: 3, exitAngle: 270, driveDirection: 'RIGHT', formattedDistance: dist(m), distanceToDestination: 12600 + m, description: road('Main Road') } }] },
     lanes: {
         from: 700,
-        events: (m) => [{ intersection: { uid: 3, direction: 'STRAIGHT_ON', formattedDistance: dist(m), description: road('Harbour Bridge') } }],
+        events: (m) => [{ intersection: { uid: 3, direction: 'STRAIGHT_ON', formattedDistance: dist(m), distanceToDestination: 5800 + m, description: road('Harbour Bridge') } }],
         lanes: { rows: [{ lanes: [lane('NONE', false, ['LEFT']), lane('STRAIGHT_ON', true), lane('STRAIGHT_ON', true, ['RIGHT']), lane('NONE', false, ['RIGHT'])],
             recommendedCarPositionLaneIndex: 1, laneMarkers: ['SOLID', 'DASHED', 'DASHED', 'DASHED', 'SOLID'] }] },
     },
@@ -38,7 +38,7 @@ const SCENARIOS = {
             { intersection: { uid: 6, direction: 'RIGHT', formattedDistance: dist(m + 80), distanceToDestination: 820 + m, description: road('Mill Lane') } },
         ],
     },
-    uturn: { from: 200, events: (m) => [{ intersection: { uid: 7, direction: 'UTURN_LEFT', formattedDistance: dist(m), description: road('') } }] },
+    uturn: { from: 200, events: (m) => [{ intersection: { uid: 7, direction: 'UTURN_LEFT', formattedDistance: dist(m), distanceToDestination: 420 + m, description: road('') } }] },
 };
 
 /** install(hu, log): patches the stub's ctx.signals; returns { set(scenario) }. */
