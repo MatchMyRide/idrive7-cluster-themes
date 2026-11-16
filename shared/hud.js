@@ -280,7 +280,7 @@ const CLAIM_MS = 1000;
 
 const BOOST_SCALE = { factor: 0.01, offset: 0, invalid: 255 }; // see header comment
 // the widget types drawn as pixels (image layers, packed into sheets unless "own": true); the rest are shaders
-const IMAGE_TYPES = { text: true, scale: true, stripe: true, badge: true, gridlabels: true, icon: true, swatchimg: true, nav: true, garland: true };
+const IMAGE_TYPES = { segbar: true, text: true, scale: true, stripe: true, badge: true, gridlabels: true, icon: true, swatchimg: true, nav: true, garland: true };
 const STATUS_ASK_MS = 2000;      // after a rebuild: ask cluster-render for its own status text
 // an image layer is "stalled" until its first pixels reach cluster-render, which after a rebuild takes a second or two
 // through the upload budget: normal. Only one still stalled this long is logged as a problem (and its recovery)
@@ -2748,17 +2748,16 @@ class HudApp {
             x.last = key;
             x.c.uniform(x.ref, 'u_value', [q]);
             x.c.uniform(x.ref, 'u_flash', [this.flash ? 1 : 0]);
+        } else if (w.type === 'segbar') {
+            if (!force && now - (x.lastPaint || 0) < (w.rate || TICK_MS)) return;
+            const segs = w.segments || 20, v = this._meterValue(w);
+            let n = 0;                         // the lit segments, as the meter shader counts them
+            if (v > 0) for (let i = 0; i < segs; i++) if ((i + 0.5) / segs <= v + 0.5 / segs) n = i + 1;
+            if (!force && n === x.last) return;
+            x.last = n; x.lastPaint = now;
+            this._blitDiff(x, this._paintSegbar(w, n));
         } else if (w.type === 'arc' || w.type === 'meter') {
-            // a meter with a "slot" (Dyno) shows the bar of whatever sensor that readout slot shows (TILE_BAR)
-            let sig = w.signal, mn = w.min, mx = w.max, ab = false;
-            if (w.slot) {
-                const sn = this.slotSensor(this.activeName, w.slot, this.layoutSlots);
-                const bar = sn ? TILE_BAR[sn.id] : null;
-                sig = bar ? bar.raw : null; mn = bar ? bar.min : 0; mx = bar ? (bar.max === 'rpm' ? this._barMax() : bar.max) : 1; ab = !!(bar && bar.abs);
-            }
-            let raw = sig ? this._raw(sig) : null;
-            if (ab && isNum(raw)) raw = Math.abs(raw);
-            const v = isNum(raw) && mx !== mn ? Math.min(1, Math.max(0, (raw - mn) / (mx - mn))) : 0;
+            const v = this._meterValue(w);
             const q = Math.round(v * 200) / 200;
             const pk = w.peak ? this._peakHold(x, q, now, w.peak) : -1;
             const key = q + '|' + pk;
@@ -3018,6 +3017,40 @@ class HudApp {
                 buf[o] = cc[0]; buf[o + 1] = cc[1]; buf[o + 2] = cc[2]; buf[o + 3] = Math.round((cc[3] === undefined ? 255 : cc[3]) * (hit[0] + hit[1] + hit[2] + hit[3]) / 9);
             }
         }
+    }
+
+    /** A meter's value 0..1: its signal between min and max, or ("slot", Dyno) the bar of the sensor that slot shows. */
+    _meterValue(w) {
+        let sig = w.signal, mn = w.min, mx = w.max, ab = false;
+        if (w.slot) {
+            const sn = this.slotSensor(this.activeName, w.slot, this.layoutSlots);
+            const bar = sn ? TILE_BAR[sn.id] : null;
+            sig = bar ? bar.raw : null; mn = bar ? bar.min : 0; mx = bar ? (bar.max === 'rpm' ? this._barMax() : bar.max) : 1; ab = !!(bar && bar.abs);
+        }
+        let raw = sig ? this._raw(sig) : null;
+        if (ab && isNum(raw)) raw = Math.abs(raw);
+        return isNum(raw) && mx !== mn ? Math.min(1, Math.max(0, (raw - mn) / (mx - mn))) : 0;
+    }
+
+    /** "segbar": the meter shader's bar drawn here, n segments lit (same colours, gaps and edge smoothing). */
+    _paintSegbar(w, n) {
+        const t = this.theme, cs = w.colors || ['fg', 'fg', 'hot'], at = w.at || [1, 1];
+        const C = [color(t, cs[0]), color(t, cs[1] || cs[0]), color(t, cs[2] || cs[1] || cs[0])], tr = color(t, w.trackColor || 'track');
+        const segs = w.segments || 20, gap = isNum(w.gap) ? w.gap : 4, vert = !!w.vertical, len = vert ? w.h : w.w, slot = (len + gap) / segs;
+        const buf = Buffer.alloc(w.w * w.h * 4, 0);
+        for (let k = 0; k < len; k++) {
+            const xx = k + 0.5, i = Math.floor(xx / slot), fx = xx - i * slot;
+            const a = Math.min(1, Math.max(0, fx + 0.5)) * Math.min(1, Math.max(0, slot - gap - fx + 0.5));
+            if (i < 0 || i >= segs || a <= 0) continue;
+            const f = (i + 0.5) / segs, lit = i < n;
+            const c = lit ? (f < at[0] ? C[0] : f < at[1] ? C[1] : C[2]) : tr;
+            const alpha = Math.round((c[3] === undefined ? 255 : c[3]) * a);
+            for (let o = 0; o < (vert ? w.w : w.h); o++) {
+                const px = vert ? o : k, py = vert ? w.h - 1 - k : o, p = (py * w.w + px) * 4;
+                buf[p] = c[0]; buf[p + 1] = c[1]; buf[p + 2] = c[2]; buf[p + 3] = alpha;
+            }
+        }
+        return buf;
     }
 
     _paintScale(x) {

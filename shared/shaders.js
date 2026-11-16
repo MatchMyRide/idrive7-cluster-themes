@@ -1616,7 +1616,7 @@ void main() {
                 bool on = (floor(k) + 0.5) / u_blocks <= u_value;
                 float fk = (floor(k) + 0.5) / u_blocks;
                 bool red = fk >= u_redAt, warn = !red && fk >= u_warnAt;
-                vec3 zone = red ? u_hot : u_warn;
+                vec3 zone = red || u_flash > 0.5 ? u_hot : u_warn;   // at the limiter the orange tiles flash red too
                 vec3 base = red || warn ? zone * (on || u_flash > 0.5 ? 1.0 : 0.5) : (on ? (u_flash > 0.5 ? u_hot : mix(u_tint, u_fg, smoothstep(0.0, 0.4, fk))) : vec3(0.36));
                 // a glossy tile: dark at the inner edge, bright towards the outer one, a lit rim on top, a sheen across
                 float across = 1.1 - 0.25 * fract(k);
