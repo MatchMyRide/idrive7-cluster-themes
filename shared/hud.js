@@ -1953,6 +1953,7 @@ class HudApp {
         this.hudHoliday = this._hudHoliday();      // the HUD's holiday colours (hud_holiday.js), null for none
         if (this.hudHoliday) this.theme = hudHoliday.theme(this.theme, this.hudHoliday);
         this.nightOn = this._nightDim();
+        this.dayTheme = this.theme;      // undimmed: texts with "noDim" keep it at night
         if (this.nightOn) this.theme = dimTheme(this.theme, NIGHT_DIM);
         this.log.info('layout "' + layout.name + '", theme ' + this.theme.name + (this.layoutTheme ? '' : ' (' + this.setting('hudTheme') + ')'));
         const shown = layout.widgets.filter((w) => !(w.toggle && !this._toggleOn(w.toggle)) && !(w.themes && w.themes.indexOf(this.themeName) < 0));
@@ -2610,9 +2611,9 @@ class HudApp {
                 font = f;
             }
             const buf = textRaster.drawText(w.w, w.h, s, {
-                font, offsetY, color: color(this.theme, role), align: w.align, spacing: w.spacing,
+                font, offsetY, color: color(w.noDim ? this.dayTheme || this.theme : this.theme, role), align: w.align, spacing: w.spacing,
                 color2: w.color2 && role !== 'hot' ? color(this.theme, w.color2) : null,
-                glow: w.glow ? this.theme.glow : 0,
+                glow: isNum(w.glow) ? w.glow : w.glow ? this.theme.glow : 0,   // a number: this glow (0..1) whatever the theme says
             });
             this._blitDiff(x, buf);
         } else if (w.type === 'badge') {

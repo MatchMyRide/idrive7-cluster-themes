@@ -555,7 +555,9 @@
       "font": "sc_speed",
       "color": "fg",
       "align": "center",
-      "conn": 1
+      "conn": 1,
+      "glow": 1,
+      "noDim": true
     },
     {
       "type": "text",
@@ -569,7 +571,9 @@
       "font": "sc_label",
       "color": "fg",
       "conn": 1,
-      "align": "center"
+      "align": "center",
+      "glow": 0.7,
+      "noDim": true
     },
     {
       "id": "ic_tyres",
