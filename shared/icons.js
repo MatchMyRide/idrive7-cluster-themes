@@ -55,6 +55,8 @@ const ICONS = {
         const pipe = (cx) => Math.abs(Math.hypot((x - cx) / 0.14, (y - 0.6) / 0.16) - 1) * 0.14 - 0.045;
         return Math.min(frame, pipe(0.28), pipe(0.72));
     },
+    // avg: the average sign (a circle struck through), for fonts without one
+    avg: (x, y) => Math.min(ring(x, y, 0.5, 0.5, 0.3) - 0.075, seg(x, y, 0.16, 0.86, 0.84, 0.14) - 0.07),
     oilcan: (x, y) => Math.min(seg(x, y, 0.2, 0.62, 0.6, 0.62) - 0.12, seg(x, y, 0.6, 0.58, 0.9, 0.44) - 0.04, disc(x, y, 0.92, 0.66, 0.05), seg(x, y, 0.3, 0.46, 0.3, 0.34) - 0.035, seg(x, y, 0.22, 0.34, 0.38, 0.34) - 0.04),
 };
 

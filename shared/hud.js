@@ -512,6 +512,7 @@ class HudApp {
         this.runs.onStart = () => { this.boostPeak = null; };
         this.tripKm = 0;                 // this drive (since the app started with the car): km driven and
         this.tripMs = 0;                 // ms moving, for {{avgSpeed}}
+        this.tripStart = Date.now();     // the drive's start (the app starts with the car), for {{tripTime}}
         this.tripT = 0;
         this.driveMode = null;           // 'comfort' | 'sport' | 'eco', once the car has said
         this.driveRaw = null;            // a drive mode value the car sent that we don't know (shown in the status)
@@ -1738,6 +1739,16 @@ class HudApp {
             case 'u:temp': return us ? '°F' : '°C';
             case 'u:speedLc': return us ? 'mph' : 'km/h';
             case 'u:distLc': return us ? 'mi' : 'km';
+            case 'u:dist': return us ? 'MI' : 'KM';
+            case 'tripKm': {         // km (mi) driven this drive: one decimal under 100
+                if (this.car.data().demo) return '23.4';
+                const v = us ? this.tripKm * 0.621371 : this.tripKm;
+                return v < 100 ? v.toFixed(1) : String(Math.round(v));
+            }
+            case 'tripTime': {       // time since the drive started, H:MM
+                const m = this.car.data().demo ? 27 : Math.floor((Date.now() - this.tripStart) / 60000);
+                return Math.floor(m / 60) + ':' + String(m % 60).padStart(2, '0');
+            }
             case 'u:dist': return us ? 'MI' : 'KM';
             case 'avgSpeed': { const v = this._avgSpeed(); return fix(isNum(v) ? (us ? v * 0.621371 : v) : v, 0); }
             case 'range': { const v = this._raw('range'); return fix(isNum(v) ? (us ? v * 0.621371 : v) : v, 0); }

@@ -199,6 +199,34 @@
       ]
     },
     {
+      "id": "pf_trip",
+      "type": "hframe",
+      "class": "content",
+      "z": 1,
+      "x": 252,
+      "y": 92,
+      "w": 458,
+      "h": 104,
+      "head": 0,
+      "glow": 6,
+      "fill": "pfill",
+      "line": "fg",
+      "line2": "fg",
+      "cuts": [
+        120,
+        24,
+        60,
+        16
+      ],
+      "cutsV": [
+        24,
+        0,
+        50,
+        0
+      ],
+      "conn": 0
+    },
+    {
       "id": "pf_right",
       "type": "hframe",
       "class": "content",
@@ -1175,6 +1203,128 @@
       "y": 126,
       "w": 40,
       "text": "{{navDestU}}"
+    },
+    {
+      "id": "ic_trip",
+      "type": "icon",
+      "icon": "gauge",
+      "z": 5,
+      "x": 398,
+      "y": 104,
+      "w": 30,
+      "h": 24,
+      "color": "accent",
+      "conn": 3
+    },
+    {
+      "type": "text",
+      "z": 5,
+      "conn": 3,
+      "h": 20,
+      "font": "sc_label",
+      "color": "fg",
+      "align": "left",
+      "id": "tr_head",
+      "x": 436,
+      "y": 108,
+      "w": 200,
+      "text": "TRIP"
+    },
+    {
+      "type": "text",
+      "z": 5,
+      "conn": 3,
+      "h": 29,
+      "font": "sc_val",
+      "color": "fg",
+      "align": "center",
+      "id": "tr_vtime",
+      "x": 275,
+      "y": 134,
+      "w": 120,
+      "text": "{{tripTime}}"
+    },
+    {
+      "type": "text",
+      "z": 5,
+      "conn": 3,
+      "h": 20,
+      "font": "sc_label",
+      "color": "dim",
+      "align": "center",
+      "id": "tr_ltime",
+      "x": 275,
+      "y": 166,
+      "w": 120,
+      "text": "TIME"
+    },
+    {
+      "type": "text",
+      "z": 5,
+      "conn": 3,
+      "h": 29,
+      "font": "sc_val",
+      "color": "fg",
+      "align": "center",
+      "id": "tr_vkm",
+      "x": 405,
+      "y": 134,
+      "w": 120,
+      "text": "{{tripKm}}"
+    },
+    {
+      "type": "text",
+      "z": 5,
+      "conn": 3,
+      "h": 20,
+      "font": "sc_label",
+      "color": "dim",
+      "align": "center",
+      "id": "tr_lkm",
+      "x": 405,
+      "y": 166,
+      "w": 120,
+      "text": "{{u:dist}}"
+    },
+    {
+      "type": "text",
+      "z": 5,
+      "conn": 3,
+      "h": 29,
+      "font": "sc_val",
+      "color": "fg",
+      "align": "center",
+      "id": "tr_vavg",
+      "x": 530,
+      "y": 134,
+      "w": 120,
+      "text": "{{avgSpeed}}"
+    },
+    {
+      "type": "text",
+      "z": 5,
+      "conn": 3,
+      "h": 20,
+      "font": "sc_label",
+      "color": "dim",
+      "align": "left",
+      "id": "tr_lavg",
+      "x": 562,
+      "y": 166,
+      "w": 80,
+      "text": "{{u:speed}}"
+    },
+    {
+      "id": "ic_avg",
+      "type": "icon",
+      "icon": "avg",
+      "z": 5,
+      "x": 540,
+      "y": 167,
+      "w": 18,
+      "h": 18,
+      "color": "dim",
+      "conn": 3
     }
   ]
 }
