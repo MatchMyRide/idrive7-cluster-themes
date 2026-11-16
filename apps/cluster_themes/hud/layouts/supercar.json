@@ -278,8 +278,6 @@
         60
       ],
       "conn": 3,
-      "toggle": "!navDirections=off",
-      "showWhen": "nav",
       "cutsV": [
         0,
         24,
@@ -1325,6 +1323,81 @@
       "h": 18,
       "color": "dim",
       "conn": 3
+    },
+    {
+      "type": "text",
+      "z": 5,
+      "conn": 1,
+      "h": 20,
+      "font": "sc_label",
+      "color": "fg",
+      "align": "center",
+      "navHide": true,
+      "id": "en_head",
+      "x": 1300,
+      "y": 108,
+      "w": 280,
+      "text": "ENGINE"
+    },
+    {
+      "type": "text",
+      "z": 5,
+      "conn": 1,
+      "h": 29,
+      "font": "sc_val",
+      "color": "fg",
+      "align": "center",
+      "navHide": true,
+      "id": "en_vboost",
+      "x": 1295,
+      "y": 134,
+      "w": 140,
+      "text": "{{boost}}"
+    },
+    {
+      "type": "text",
+      "z": 5,
+      "conn": 1,
+      "h": 20,
+      "font": "sc_label",
+      "color": "dim",
+      "align": "center",
+      "navHide": true,
+      "id": "en_lboost",
+      "x": 1290,
+      "y": 166,
+      "w": 150,
+      "text": "BOOST {{u:boost}}"
+    },
+    {
+      "type": "text",
+      "z": 5,
+      "conn": 1,
+      "h": 29,
+      "font": "sc_val",
+      "color": "fg",
+      "align": "center",
+      "navHide": true,
+      "id": "en_vintake",
+      "x": 1460,
+      "y": 134,
+      "w": 140,
+      "text": "{{intake}}"
+    },
+    {
+      "type": "text",
+      "z": 5,
+      "conn": 1,
+      "h": 20,
+      "font": "sc_label",
+      "color": "dim",
+      "align": "center",
+      "navHide": true,
+      "id": "en_lintake",
+      "x": 1455,
+      "y": 166,
+      "w": 150,
+      "text": "INTAKE {{u:temp}}"
     }
   ]
 }
