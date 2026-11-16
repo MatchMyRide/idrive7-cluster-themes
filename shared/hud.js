@@ -2966,6 +2966,7 @@ class HudApp {
     _paintStripe(x) {
         const w = x.w, buf = Buffer.alloc(w.w * w.h * 4, 0), sl = w.slant || 0, bw = (w.w - sl) / 3;
         x.navOn = !(w.navHide && this.navShown) && !(w.withBadge && !this._token('badge')) && !(w.withM && !this._token('badgeM'));
+        if (x.navOn && w.letterM) { this._paintEmblem(x, buf); this._blit(x, null, buf); return; }
         if (x.navOn) {
             for (let py = 0; py < w.h; py++) {
                 const off = sl * (1 - (py + 0.5) / w.h);
@@ -2980,6 +2981,43 @@ class HudApp {
             }
         }
         this._blit(x, null, buf);
+    }
+
+    /** "letterM": the M emblem drawn as a shape (no font has it): three colour bars and an M whose left leg leans like them,
+     *  its right leg upright, cut by one notch from the top and two from the bottom. Measured off the user's M440i badge
+     *  photo (2000 px wide: 137 px high, the bars 54 px each with 5 px gaps, lean 0.56); units are those pixels, x from the
+     *  first bar's bottom left, y up from the baseline, scaled to the widget's height. The M in the theme's text colour. */
+    _paintEmblem(x, buf) {
+        const w = x.w, H = 137, k = 0.56, s = w.h / H, fg = this.theme.fg;
+        const bars = [[0, 52], [57, 109], [116, 171]];
+        const tri = (px, py, a, b, c) => {
+            const d = (p, q, r) => (p[0] - r[0]) * (q[1] - r[1]) - (q[0] - r[0]) * (p[1] - r[1]);
+            const p = [px, py], d1 = d(p, a, b), d2 = d(p, b, c), d3 = d(p, c, a);
+            return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
+        };
+        const notches = [[[323, 138], [358, 138], [324, 88]], [[247, -1], [278, -1], [278, 53]], [[333, -1], [365, -1], [365, 55]]];
+        const at = (X, Y) => {            // 0..2: a bar, 3: the M, -1: nothing
+            if (Y < 0 || Y > H) return -1;
+            const u = X - k * Y;
+            for (let i = 0; i < 3; i++) if (u >= bars[i][0] && u < bars[i][1]) return i;
+            if (u >= 175 && X <= 418 && !notches.some((t) => tri(X, Y, t[0], t[1], t[2]))) return 3;
+            return -1;
+        };
+        const cols = (this.theme.stripeColors || M_STRIPE).concat([fg]);
+        for (let py = 0; py < w.h; py++) {
+            for (let px = 0; px < w.w; px++) {
+                const hit = [0, 0, 0, 0];
+                for (let sy = 0; sy < 3; sy++) for (let sx = 0; sx < 3; sx++) {
+                    const c = at((px + (sx + 0.5) / 3) / s, (w.h - py - (sy + 0.5) / 3) / s);
+                    if (c >= 0) hit[c]++;
+                }
+                let best = -1, n = 0;
+                hit.forEach((v, i) => { if (v > n) { n = v; best = i; } });
+                if (best < 0) continue;
+                const o = (py * w.w + px) * 4, cc = cols[best];
+                buf[o] = cc[0]; buf[o + 1] = cc[1]; buf[o + 2] = cc[2]; buf[o + 3] = Math.round((cc[3] === undefined ? 255 : cc[3]) * (hit[0] + hit[1] + hit[2] + hit[3]) / 9);
+            }
+        }
     }
 
     _paintScale(x) {
