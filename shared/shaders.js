@@ -1707,8 +1707,10 @@ void main() {
     vec2 m = vec2(u_glow + 2.0), b = u_size * 0.5 - m, p = px - u_size * 0.5;
     vec2 q = abs(p) - b;
     float box = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
-    float cc = p.y < 0.0 ? (p.x < 0.0 ? u_cuts.x : u_cuts.y) : (p.x > 0.0 ? u_cuts.z : u_cuts.w);
-    float d = max(box, (abs(p.x) + abs(p.y) - (b.x + b.y - cc)) * 0.7071);
+    // each corner's chamfer on its own (a big one may reach past the middle of a side): top left, top right, bottom right, bottom left
+    float bb = b.x + b.y;
+    float ch = max(max(-p.x - p.y - bb + u_cuts.x, p.x - p.y - bb + u_cuts.y), max(p.x + p.y - bb + u_cuts.z, -p.x + p.y - bb + u_cuts.w));
+    float d = max(box, ch * 0.7071);
     if (u_circ.z > 0.0) d = max(d, u_circ.z - length((px - u_circ.xy) / 64.0) * 64.0);
     float inside = 1.0 - smoothstep(-0.5, 0.5, d);
     vec4 c = vec4(u_fill.rgb, u_fill.a * inside * (1.0 - 0.55 * v_uv.y));
