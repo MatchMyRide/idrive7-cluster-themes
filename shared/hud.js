@@ -2752,7 +2752,9 @@ class HudApp {
             x.c.uniform(x.ref, 'u_value', [q]);
             x.c.uniform(x.ref, 'u_flash', [this.flash ? 1 : 0]);
         } else if (w.type === 'segbar') {
-            if (!force && now - (x.lastPaint || 0) < (w.rate || TICK_MS)) return;
+            // an image upload: at most as often as the numbers beside it (TEXT_MS), not every tick; at 20 Hz each the
+            // bars' uploads crowded cluster-render and likely made the rev arc stutter (car, Nov 16 2026)
+            if (!force && now - (x.lastPaint || 0) < (w.rate || TEXT_MS)) return;
             const segs = w.segments || 20, v = this._meterValue(w);
             let n = 0;                         // the lit segments, as the meter shader counts them
             if (v > 0) for (let i = 0; i < segs; i++) if ((i + 0.5) / segs <= v + 0.5 / segs) n = i + 1;
