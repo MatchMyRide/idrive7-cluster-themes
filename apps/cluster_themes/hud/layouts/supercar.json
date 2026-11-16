@@ -1091,6 +1091,20 @@
       "x": 1546,
       "y": 344,
       "conn": 3
+    },
+    {
+      "id": "nav",
+      "type": "nav",
+      "x": 1250,
+      "y": 96,
+      "w": 268,
+      "h": 102,
+      "toggle": "!navDirections=off",
+      "class": "overlay",
+      "z": 20,
+      "color": "fg",
+      "align": "right",
+      "conn": 2
     }
   ]
 }
