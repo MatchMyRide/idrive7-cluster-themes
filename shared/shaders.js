@@ -1790,6 +1790,7 @@ uniform float u_full;
 uniform vec3 u_fg;
 uniform vec3 u_glow;
 uniform vec3 u_hot;
+uniform float u_part;     // 0: all; 1: the still parts only (face, bezel, glow, ticks, the LEDs unlit); 2: what moves only (needle, hub, lit LEDs)
 uniform float u_leds;     // full: that many LEDs in the bezel (0 = none), lit from 0 up to the needle:
 uniform float u_ledWarn;  //   white below u_ledWarn, u_warn up to u_ledRed, red past it (0..1 of the dial)
 uniform float u_ledRed;
@@ -1800,13 +1801,17 @@ const float TAU = 6.2831853;
 void main() {
     vec2 p = v_uv * u_size, d = p - u_center;
     float dist = length(d / 64.0) * 64.0;
-    float ang = atan(d.x, -d.y);
-    if (ang < 0.0) ang += TAU;
-    float rel = ang - u_start;
-    if (rel < 0.0) rel += TAU;
-    float f = rel / u_sweep;
+    // the angle only where it is needed: the moving layer (u_part 2) needs it in the LED ring alone
+    float ang = 0.0, f = 2.0;
+    if (u_part < 1.5 || abs(dist - u_r - 22.0) < 14.0) {
+        ang = atan(d.x, -d.y);
+        if (ang < 0.0) ang += TAU;
+        float rel = ang - u_start;
+        if (rel < 0.0) rel += TAU;
+        f = rel / u_sweep;
+    }
     vec4 c = vec4(0.0);
-    if (u_full > 0.5) {
+    if (u_full > 0.5 && u_part < 1.5) {
         // the face: dark blue in the middle fading to black, a stepped ring inside the ticks
         if (dist < u_r + 6.0) c = vec4(mix(vec3(0.05, 0.09, 0.16), vec3(0.0), smoothstep(0.0, u_r, dist)), 1.0);
         float step8 = floor(mod(ang / TAU * 24.0 + 1.5, 2.0));   // 12 even teeth, one centred on top
@@ -1821,18 +1826,21 @@ void main() {
         c = mix(c, vec4(vec3(0.45 + 0.45 * lit), 1.0), rim * bz);
     }
     // LEDs in the bezel
-    if (u_full > 0.5 && u_leds > 0.5 && f <= 1.0) {
+    if (u_full > 0.5 && u_leds > 0.5 && f <= 1.0 && abs(dist - u_r - 22.0) < 14.0) {
         float rl = u_r + 22.0, k = floor(f * u_leds), fk = (k + 0.5) / u_leds;
         float la = u_start + fk * u_sweep;
         vec2 rad = vec2(sin(la), -cos(la)), lp = p - (u_center + rl * rad);
         vec2 lq = abs(vec2(dot(lp, vec2(-rad.y, rad.x)), dot(lp, rad))) - vec2(4.0, 7.0);
         float dl = length(max(lq, 0.0)) + min(max(lq.x, lq.y), 0.0);
-        bool on = u_flash > 1.5 ? false : (u_flash > 0.5 || fk <= u_value);
+        bool on = u_part > 0.5 && u_part < 1.5 ? false : u_flash > 1.5 ? false : (u_flash > 0.5 || fk <= u_value);
         vec3 lc = u_flash > 0.5 ? u_hot : fk >= u_ledRed ? u_hot : fk >= u_ledWarn ? u_warn : vec3(0.92, 0.97, 1.0);
         float led = 1.0 - smoothstep(-0.6, 0.8, dl);
         float halo = on ? exp(-max(dl, 0.0) / 5.0) * 0.6 : 0.0;
-        c = mix(c, vec4(on ? lc : vec3(0.12, 0.13, 0.16), 1.0), clamp(led + halo, 0.0, 1.0));
+        if (u_part < 0.5 || (u_part < 1.5 && !on) || (u_part > 1.5 && on)) c = mix(c, vec4(on ? lc : vec3(0.12, 0.13, 0.16), 1.0), clamp(led + halo, 0.0, 1.0));
     }
+    if (u_part > 1.5) {
+        // the moving layer: only the needle and the hub below
+    } else {
     // the glow under the ticks
     float gl = exp(-abs(dist - (u_r - 8.0)) / 14.0) * (f <= 1.0 ? 1.0 : 0.0);
     bool lit = u_fill < 0.5 || f <= u_value;
@@ -1847,7 +1855,8 @@ void main() {
         vec3 tc = k / n >= u_redAt ? u_hot : mix(u_fg, u_glow, 0.25);
         c = mix(c, vec4(tc, 1.0), t * (lit ? 1.0 : 0.45));
     }
-    if (u_full > 0.5) {
+    }
+    if (u_full > 0.5 && u_part != 1.0) {
         // the needle: white, tapering, from the hub nearly to the ticks; the hub a white ring
         float a = u_start + u_value * u_sweep;
         vec2 nd = vec2(sin(a), -cos(a));

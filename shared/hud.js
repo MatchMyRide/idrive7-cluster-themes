@@ -1776,6 +1776,7 @@ class HudApp {
                 const p = isNum(this.flapPct) && Date.now() - this.flapAt < FLAP_STALE_MS ? this.flapPct : this.car.data().demo ? [0, 50, 100][Math.floor(Date.now() / 4000) % 3] : null;
                 return !isNum(p) ? '--' : p <= 20 ? 'OPEN' : p >= 80 ? 'CLOSED' : 'AUTO';
             }
+            case 'navHead': return this.navShown ? 'NAVIGATION' : '';
             case 'navDest': case 'navDestU': case 'navDestH': {   // the distance to the destination: 34 / 8.5 km, 850 m (mi / ft in US units)
                 const m = this.navShown && this.navM && isNum(this.navM.dtd) ? this.navM.dtd : null;
                 if (!isNum(m)) return '';
@@ -2430,6 +2431,7 @@ class HudApp {
             c.uniform(ref, 'u_hot', rgb(color(t, 'hot')));
             const lmax = rpm ? max : w.max - w.min;
             c.uniform(ref, 'u_leds', [w.leds || 0]);
+            c.uniform(ref, 'u_part', [w.part === 1 || w.part === 2 ? w.part : 0]);   // "part" 1: the still parts (never redrawn), 2: needle and lit LEDs
             c.uniform(ref, 'u_ledWarn', [isNum(w.ledWarn) ? w.ledWarn / lmax : 2]);
             c.uniform(ref, 'u_ledRed', [isNum(w.ledRed) ? w.ledRed / lmax : 2]);
             c.uniform(ref, 'u_warn', rgb(color(t, 'warn')));
@@ -2729,6 +2731,7 @@ class HudApp {
             x.c.uniform(x.ref, 'u_value', [q]);
             x.c.uniform(x.ref, 'u_flash', [this.flash ? 1 : 0]);
         } else if (w.type === 'bgauge') {
+            if (w.part === 1) return;          // the still half: set once
             const rpm = w.measure === 'rpm', raw = this._raw(rpm ? 'rpm' : w.signal), max = rpm ? this._barMax(w) : w.max, min = rpm ? 0 : w.min;
             const v = isNum(raw) ? Math.min(1, Math.max(0, (raw - min) / (max - min))) : 0;
             const q = Math.round(v * 400) / 400;
