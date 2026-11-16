@@ -556,7 +556,6 @@
       "color": "fg",
       "align": "center",
       "conn": 1,
-      "glow": 1,
       "noDim": true
     },
     {
@@ -572,7 +571,6 @@
       "color": "fg",
       "conn": 1,
       "align": "center",
-      "glow": 0.7,
       "noDim": true
     },
     {
