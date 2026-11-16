@@ -2599,6 +2599,10 @@ class HudApp {
             x.c.uniform(x.ref, 'u_text', this._atlasCodes(x, s), { type: 'vec4' });
         } else if (w.type === 'nav') this._navUpdate(x, now, force);
         else if (w.type === 'garland') this._garlandTick(x, now);
+        else if (w.type === 'stripe' && (w.navHide || w.withBadge)) {
+            const on = !(w.navHide && this.navShown) && !(w.withBadge && !this._token('badge'));
+            if (on !== x.navOn) this._paintStripe(x);
+        }
         else if (w.type === 'text') {
             if (!force && now - x.lastPaint < (w.rate || TEXT_MS)) return;
             const s = (w.navHide && this.navShown) || smartTemps.hidden(this, w) ? '' : this._resolve(w.text);   // nav turn showing / "showWhen": "abnormal"
@@ -2952,11 +2956,23 @@ class HudApp {
         this._blit(x, rects, Buffer.concat(parts));
     }
 
+    /** The M colours side by side. "slant" px: a parallelogram, its top that far right of its bottom (bars of equal width,
+     *  a 1 px gap between them). "navHide": empty while a turn shows; "withBadge": empty while no badge is picked. */
     _paintStripe(x) {
-        const w = x.w, buf = Buffer.alloc(w.w * w.h * 4, 0);
-        for (let px = 0; px < w.w; px++) {
-            const c = (this.theme.stripeColors || M_STRIPE)[Math.min(2, Math.floor(px * 3 / w.w))];
-            for (let py = 0; py < w.h; py++) c.forEach((v, i) => { buf[(py * w.w + px) * 4 + i] = v; });
+        const w = x.w, buf = Buffer.alloc(w.w * w.h * 4, 0), sl = w.slant || 0, bw = (w.w - sl) / 3;
+        x.navOn = !(w.navHide && this.navShown) && !(w.withBadge && !this._token('badge'));
+        if (x.navOn) {
+            for (let py = 0; py < w.h; py++) {
+                const off = sl * (1 - (py + 0.5) / w.h);
+                for (let px = 0; px < w.w; px++) {
+                    const u = px + 0.5 - off;
+                    if (u < 0 || u >= 3 * bw) continue;
+                    const k = Math.min(2, Math.floor(u / bw));
+                    if (sl && k > 0 && u - k * bw < 1.5) continue;      // the gap between two bars
+                    const c = (this.theme.stripeColors || M_STRIPE)[k];
+                    c.forEach((v, i) => { buf[(py * w.w + px) * 4 + i] = v; });
+                }
+            }
         }
         this._blit(x, null, buf);
     }
