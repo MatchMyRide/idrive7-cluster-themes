@@ -2429,6 +2429,7 @@ class HudApp {
             const k = isNum(w.cut) ? w.cut : 22, cs = Array.isArray(w.cuts) ? w.cuts : [k, k, k, k], dv = (w.dividers || []).slice(0, 4);
             c.uniform(ref, 'u_cuts', [0, 1, 2, 3].map((i) => (isNum(cs[i]) ? cs[i] : k)));
             c.uniform(ref, 'u_div', [0, 1, 2, 3].map((i) => (isNum(dv[i]) ? dv[i] - w.y : 0)));
+            c.uniform(ref, 'u_alpha', [w.showWhen === 'nav' && !this.navShown ? 0 : 1]);   // "showWhen": "nav": only with a turn showing
             c.uniform(ref, 'u_head', [w.head || 0]);
             c.uniform(ref, 'u_glow', [isNum(w.glow) ? w.glow : 6]);
             c.uniform(ref, 'u_fill', rgba(color(t, w.fill || 'pfill')));
@@ -2867,6 +2868,8 @@ class HudApp {
         const M = this._navMods(), v = this._navSource().view(this._navMode()), m = v && v.show;
         const opts = { color: color(this.theme, x.w.color || 'fg'), align: x.w.align === 'left' ? 'left' : 'right' };
         this.navShown = !!m;
+        // frames with "showWhen": "nav" come and go with the directions
+        this.widgets.forEach((y) => { if (y.w.showWhen === 'nav' && y.ref && y.navOn !== this.navShown) { y.navOn = this.navShown; y.c.uniform(y.ref, 'u_alpha', [this.navShown ? 1 : 0]); } });
         const key = m ? M.Pic.navKey(m, opts) : '';
         if (!force && key === x.last) return;
         x.last = key;

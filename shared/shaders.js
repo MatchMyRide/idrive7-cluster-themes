@@ -1683,6 +1683,7 @@ uniform vec3 u_line;
 uniform vec3 u_line2;
 uniform vec3 u_circ;
 uniform vec4 u_cuts;      // panel: the chamfer per corner, px: top left, top right, bottom right, bottom left
+uniform float u_alpha;    // 0..1 the whole layer (a frame shown only with the directions)
 uniform vec4 u_div;       // panel: up to four divider lines across it at these y (layer px, 0 = none)
 uniform vec4 u_cut0;      // BMW content kept visible (visible.KEEP): see-through rects x, y, w, h layer px
 uniform vec4 u_cut1;
@@ -1700,7 +1701,7 @@ void main() {
         float d = abs(px.y - u_size.y * 0.5);
         float ends = smoothstep(0.0, 0.12, v_uv.x) * (1.0 - smoothstep(0.88, 1.0, v_uv.x));
         float a = (1.0 - smoothstep(0.8, 1.8, d) + exp(-d / u_glow) * 0.55) * ends;
-        gl_FragColor = vec4(mix(lc, vec3(1.0), (1.0 - smoothstep(0.0, 0.9, d)) * 0.5), min(a, 1.0) * cutA(u_cut0) * cutA(u_cut1));
+        gl_FragColor = vec4(mix(lc, vec3(1.0), (1.0 - smoothstep(0.0, 0.9, d)) * 0.5), min(a, 1.0) * cutA(u_cut0) * cutA(u_cut1) * u_alpha);
         return;
     }
     vec2 m = vec2(u_glow + 2.0), b = u_size * 0.5 - m, p = px - u_size * 0.5;
@@ -1724,7 +1725,7 @@ void main() {
     dv = max(dv, u_div.z > 0.0 ? 1.0 - smoothstep(0.4, 1.2, abs(px.y - u_div.z)) : 0.0);
     dv = max(dv, u_div.w > 0.0 ? 1.0 - smoothstep(0.4, 1.2, abs(px.y - u_div.w)) : 0.0);
     c = mix(c, vec4(mix(lc, vec3(1.0), 0.15), 1.0), dv * (1.0 - smoothstep(-20.0, -10.0, d)) * 0.7);
-    c.a *= cutA(u_cut0) * cutA(u_cut1);
+    c.a *= cutA(u_cut0) * cutA(u_cut1) * u_alpha;
     gl_FragColor = c;
 }
 `;

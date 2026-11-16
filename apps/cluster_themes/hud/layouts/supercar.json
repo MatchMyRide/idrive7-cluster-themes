@@ -230,6 +230,30 @@
       ]
     },
     {
+      "id": "pf_nav",
+      "type": "hframe",
+      "class": "content",
+      "z": 1,
+      "x": 1240,
+      "y": 94,
+      "w": 300,
+      "h": 98,
+      "head": 0,
+      "glow": 6,
+      "fill": "pfill",
+      "line": "fg",
+      "line2": "fg",
+      "cuts": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "conn": 3,
+      "toggle": "!navDirections=off",
+      "showWhen": "nav"
+    },
+    {
       "id": "pw_power_bar",
       "type": "meter",
       "class": "content",
@@ -1095,10 +1119,10 @@
     {
       "id": "nav",
       "type": "nav",
-      "x": 1250,
-      "y": 96,
-      "w": 268,
-      "h": 102,
+      "x": 1268,
+      "y": 100,
+      "w": 228,
+      "h": 87,
       "toggle": "!navDirections=off",
       "class": "overlay",
       "z": 20,
