@@ -611,15 +611,15 @@ vec4 streak(vec2 q, float py, float len, vec3 col, float k, vec4 c) {
 vec4 gauge(vec2 p, vec4 g, float zones, vec4 c) {
     float k = g.z / 120.0;
     vec2 q = (p - g.xy) / k;
-    if (q.x < -140.0 || q.x > 70.0 || q.y < -22.0 || q.y > 140.0) return c;
+    if (q.x < -140.0 || q.x > 70.0 || q.y < -50.0 || q.y > 140.0) return c;
     float v = clamp(g.w, 0.0, 1.0);
-    float yv = zones > 0.5 ? mix(97.0, 7.0, v) : mix(100.0, 2.0, v);
+    float yv = mix(100.0, -32.0, v);
     // the glass: a soft grey sheen, bright along the outer edge and fading to black inwards, lit from the bottom up
     // to the level; no inner outline (the M8's)
     float dOut = 120.0 - length(q);
-    float dIn = length(q - vec2(57.0, -68.0)) - 180.0;
-    float top = q.y + 10.0;
-    float ends = zones > 0.5 ? min(top, min(104.0 - q.y, -30.0 - q.x)) : min(top, 14.0 - q.x);   // the oil glass ends higher and shorter (photo: y 564, x 1686)
+    float dIn = mix(12.0, 50.0, clamp((q.y + 38.0) / 138.0, 0.0, 1.0)) - dOut;   // the glass: 12 px deep at the top, 50 at the bottom
+    float top = q.y + 38.0;
+    float ends = min(top, 14.0 - q.x);
     float inside = min(min(dOut, dIn), ends);
     if (inside > -10.0) {
         float lit = smoothstep(yv - 2.0, yv + 4.0, q.y);
@@ -629,14 +629,14 @@ vec4 gauge(vec2 p, vec4 g, float zones, vec4 c) {
         float edge = cov(abs(dOut) * k - 1.3) * step(-1.0, ends);          // on along the bottom to the end, past the glass
         edge = max(edge, cov(abs(top) * k - 1.3) * step(-1.0, min(dOut, dIn)));
         for (int i = 0; i < 5; i++) {
-            float yt = zones > 0.5 ? mix(97.0, 7.0, float(i) * 0.25) : mix(100.0, 2.0, float(i) * 0.25);
+            float yt = mix(100.0, -32.0, float(i) * 0.25);
             edge = max(edge, cov(abs(q.y - yt) * k - 0.9) * step(-8.0, dOut) * step(dOut, 0.0));
         }
         c = over(vec4(0.95, 0.96, 0.98, edge), c);
     }
     if (zones > 0.5) {
-        c = streak(q, -8.0, 44.0, u_red, k, c);                                    // hot end, above the top label as the photo
-        c = streak(q, 101.0, 34.0, vec3(0.3, 0.55, 1.0), k, c);                    // cold end, along the glass's bottom
+        c = streak(q, -34.0, 44.0, u_red, k, c);                                   // hot end, over the top end as the photo
+        c = streak(q, 112.0, 50.0, vec3(0.3, 0.55, 1.0), k, c);                    // cold end, along the bottom
     } else {
         c = streak(q, 112.0, 50.0, u_red, k, c);                                   // reserve
     }
