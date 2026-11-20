@@ -594,9 +594,9 @@ vec4 segbar(vec2 p, vec4 b, vec2 s, vec4 c) {
 
 // a side dial as the M8 draws it, traced off the photo: not a round gauge but a tall thin bracket cut from big
 // circles. The glass lies inside a circle of radius 120 round the anchor g.xy and outside one of radius 180 round
-// (57, -68), so it is ~20 px wide at the top and widens to ~50 at the bottom; a hatched chrome bezel (an arc between
-// radii 113 and 124 round (-13, 11)) runs down its outer side. The level reads by height: the glass is lit from the
-// bottom up to the level, dark above it (a thin bright line along its outer edge), and a horizontal red streak runs in
+// (57, -68), so it is ~20 px wide at the top and widens to ~50 at the bottom; a thin white line with short ticks runs
+// down its outer side and over its top end. The level reads by height: a grey sheen along the outer edge is bright from
+// the bottom up to the level, faint above it, and a horizontal red streak runs in
 // from the outer edge at the level. Fixed streaks mark the end zones (zones 0, fuel: the reserve at the bottom; 1, oil:
 // blue at the cold bottom end, red at the hot top end). Units are the photo's px with g.z = 120 there.
 // Drawn in the left frame; the right dial comes through the mirror.
@@ -613,44 +613,34 @@ vec4 gauge(vec2 p, vec4 g, float zones, vec4 c) {
     vec2 q = (p - g.xy) / k;
     if (q.x < -140.0 || q.x > 70.0 || q.y < -22.0 || q.y > 140.0) return c;
     float v = clamp(g.w, 0.0, 1.0);
-    // the bezel: double-edged and hatched, from its top end down round to its bottom end
-    vec2 qb = q - vec2(-13.0, 11.0);
-    float rb = length(qb);
-    if (q.y > -16.0 && q.x < -30.0 && rb > 111.0 && rb < 126.0) {
-        float ab = atan(qb.y, qb.x);
-        float hatch = step(0.5, fract(ab * 30.0));
-        float edge = max(cov((abs(rb - 112.5)) * k - 0.8), cov((abs(rb - 124.0)) * k - 0.8));
-        float body = (rb > 112.5 && rb < 124.0) ? 0.4 + 0.35 * hatch : 0.0;
-        c = over(vec4(0.8, 0.82, 0.88, min(1.0, body + 0.7 * edge)), c);
-    }
-    // the glass
+    float yv = zones > 0.5 ? mix(97.0, 7.0, v) : mix(100.0, 2.0, v);
+    // the glass: a soft grey sheen, bright along the outer edge and fading to black inwards, lit from the bottom up
+    // to the level; no inner outline (the M8's)
     float dOut = 120.0 - length(q);
     float dIn = length(q - vec2(57.0, -68.0)) - 180.0;
-    float inside = min(min(dOut, dIn), min(q.y + 10.0, 14.0 - q.x));
-    if (zones > 0.5) inside = min(min(inside, 104.0 - q.y), -30.0 - q.x);       // the oil glass ends higher and shorter (photo: y 564, x 1686)
-    if (inside > -1.5) {
-        float f = clamp(dOut / max(dOut + max(dIn, 0.0), 1.0), 0.0, 1.0);        // 0 at the outer edge, 1 at the inner
-        float yv = zones > 0.5 ? mix(97.0, 7.0, v) : mix(100.0, 2.0, v);
+    float top = q.y + 10.0;
+    float ends = zones > 0.5 ? min(top, min(104.0 - q.y, -30.0 - q.x)) : min(top, 14.0 - q.x);   // the oil glass ends higher and shorter (photo: y 564, x 1686)
+    float inside = min(min(dOut, dIn), ends);
+    if (inside > -10.0) {
         float lit = smoothstep(yv - 2.0, yv + 4.0, q.y);
-        // hollow, as the M3 draws it: black inside, a faint grey below the level, a silver outline all round
-        vec4 dark = vec4(0.03, 0.035, 0.04, 0.85);
-        vec4 bright = vec4(mix(vec3(0.86, 0.88, 0.92), vec3(0.55, 0.57, 0.62), f), mix(0.55, 0.25, f));
-        vec4 glass = mix(dark, bright, lit);
-        c = over(vec4(glass.rgb, glass.a * cov(-inside * k)), c);
-        c = over(vec4(0.93, 0.95, 0.98, 0.9 * cov(abs(inside * k) - 0.8)), c);
-        // the level: a red block across the glass with a glow, as on the rev blades
-        float dm = abs(q.y - yv) * k;
-        float ins = cov(-inside * k);
-        c = over(vec4(u_red, 0.45 * exp(-dm / 16.0) * ins), c);
-        c = over(vec4(mix(u_red, vec3(1.0, 0.45, 0.4), 0.35 * cov(dm - 3.0)), cov(dm - 6.0) * ins), c);
+        float sheen = exp(-max(dOut, 0.0) / 20.0);
+        c = over(vec4(vec3(0.88, 0.9, 0.93), mix(0.1, 0.75, lit) * sheen * cov(-inside * k)), c);
+        // the outline: a thin white line along the outer edge and over the top end, short ticks out of it
+        float edge = cov(abs(dOut) * k - 1.3) * step(-1.0, ends);          // on along the bottom to the end, past the glass
+        edge = max(edge, cov(abs(top) * k - 1.3) * step(-1.0, min(dOut, dIn)));
+        for (int i = 0; i < 5; i++) {
+            float yt = zones > 0.5 ? mix(97.0, 7.0, float(i) * 0.25) : mix(100.0, 2.0, float(i) * 0.25);
+            edge = max(edge, cov(abs(q.y - yt) * k - 0.9) * step(-8.0, dOut) * step(dOut, 0.0));
+        }
+        c = over(vec4(0.95, 0.96, 0.98, edge), c);
     }
-    float yv = zones > 0.5 ? mix(97.0, 7.0, v) : mix(100.0, 2.0, v);
     if (zones > 0.5) {
         c = streak(q, -8.0, 44.0, u_red, k, c);                                    // hot end, above the top label as the photo
         c = streak(q, 101.0, 34.0, vec3(0.3, 0.55, 1.0), k, c);                    // cold end, along the glass's bottom
     } else {
         c = streak(q, 112.0, 50.0, u_red, k, c);                                   // reserve
     }
+    c = streak(q, yv, 38.0, u_red, k, c);                                          // the level, in from the outer edge
     return c;
 }
 
