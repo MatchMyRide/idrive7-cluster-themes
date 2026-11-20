@@ -632,11 +632,17 @@ vec4 gauge(vec2 p, vec4 g, float zones, vec4 c) {
         float f = clamp(dOut / max(dOut + max(dIn, 0.0), 1.0), 0.0, 1.0);        // 0 at the outer edge, 1 at the inner
         float yv = zones > 0.5 ? mix(97.0, 7.0, v) : mix(100.0, 2.0, v);
         float lit = smoothstep(yv - 2.0, yv + 4.0, q.y);
-        vec4 dark = vec4(0.85, 0.87, 0.92, 0.75 * (1.0 - smoothstep(0.0, 6.0, dOut)));
-        vec4 bright = vec4(mix(vec3(0.96, 0.97, 0.99), vec3(0.55, 0.57, 0.63), f), mix(1.0, 0.55, f));
+        // hollow, as the M3 draws it: black inside, a faint grey below the level, a silver outline all round
+        vec4 dark = vec4(0.03, 0.035, 0.04, 0.85);
+        vec4 bright = vec4(mix(vec3(0.86, 0.88, 0.92), vec3(0.55, 0.57, 0.62), f), mix(0.55, 0.25, f));
         vec4 glass = mix(dark, bright, lit);
         c = over(vec4(glass.rgb, glass.a * cov(-inside * k)), c);
-        c = over(vec4(1.0, 1.0, 1.0, 0.7 * cov(abs(inside * k) - 0.6) * (1.0 - lit) * step(dOut, 3.0)), c);
+        c = over(vec4(0.93, 0.95, 0.98, 0.9 * cov(abs(inside * k) - 0.8)), c);
+        // the level: a red block across the glass with a glow, as on the rev blades
+        float dm = abs(q.y - yv) * k;
+        float ins = cov(-inside * k);
+        c = over(vec4(u_red, 0.45 * exp(-dm / 16.0) * ins), c);
+        c = over(vec4(mix(u_red, vec3(1.0, 0.45, 0.4), 0.35 * cov(dm - 3.0)), cov(dm - 6.0) * ins), c);
     }
     float yv = zones > 0.5 ? mix(97.0, 7.0, v) : mix(100.0, 2.0, v);
     if (zones > 0.5) {
@@ -645,7 +651,6 @@ vec4 gauge(vec2 p, vec4 g, float zones, vec4 c) {
     } else {
         c = streak(q, 112.0, 50.0, u_red, k, c);                                   // reserve
     }
-    c = streak(q, yv, 38.0, u_red, k, c);                                          // the level, across the glass only
     return c;
 }
 
