@@ -748,10 +748,9 @@ void main() {
         float inBand = clamp(d + 0.5, 0.0, 1.0) * clamp(w - d + 0.5, 0.0, 1.0);
         float across = clamp(d / w, 0.0, 1.0);
         float yn = y0 - u_value * (y0 - y8);
-        vec4 g = vec4(0.62, 0.67, 0.74, mix(0.42, 0.06, across));          // empty glass (bright at the outer edge, as the M8's)
-        if (p.y > yn) g = vec4(mix(vec3(0.86, 0.88, 0.92), vec3(0.6, 0.63, 0.68), across), mix(0.34, 0.22, across));
-        // the foot: the bottom 20 px as an outlined grey block, as the M8 draws it
-        if (p.y > y0 - 20.0) g = over(vec4(0.7, 0.72, 0.78, 0.22), g);
+        vec4 g = vec4(0.03, 0.035, 0.04, 0.85);                               // hollow: black inside, as the M3 / M8 draw it
+        if (p.y > yn) g = vec4(mix(vec3(0.78, 0.8, 0.84), vec3(0.45, 0.47, 0.5), across), mix(0.3, 0.12, across));   // the lit part: a faint grey
+        // the foot: the bottom 20 px outlined, as the M8 draws it
         g = over(vec4(0.9, 0.92, 0.95, 0.7 * cov(min(abs(p.y - (y0 - 19.0)), abs(p.y - (y0 - 1.5))) - 0.8)), g);
         // the marker: a red block at the rpm with a glow either side of it
         float dm = abs(p.y - yn);
@@ -761,12 +760,9 @@ void main() {
         c = over(vec4(0.93, 0.95, 0.98, cov(abs(d) - 1.6)), c);               // outer edge
         c = over(vec4(1.0, 1.0, 1.0, 0.3 * cov(abs(d - 4.0) - 0.6)), c);       // its bevel
         c = over(vec4(0.66, 0.7, 0.76, 0.75 * cov(abs(d - w) - 0.8)), c);      // inner edge
-        // BMW's marks: a solid red line from the redline, a few orange dashes in the run-up to it
-        bool redM = t >= u_redFrom && d > 6.0 && d < 11.0;
-        bool orM = t >= u_orange && t < u_redFrom - 0.01 && d > 6.0 && d < 11.0 && mod(p.y, 20.0) < 7.0;
-        if (redM || orM) {
-            c = over(vec4(redM ? u_red : vec3(1.0, 0.6, 0.1), 0.95), c);
-        }
+        // the M red: a thin line inside the outer edge the whole length, stronger from the redline
+        float redA = (t >= u_redFrom ? 1.0 : 0.75) * cov(abs(d - 6.5) - 1.5);
+        c = over(vec4(u_red, redA), c);
     }
     // ticks every 1000 rpm: bright, from the outer edge 24 px into the glass, as the M8 draws them
     float kk = floor(t * u_ticks + 0.5);
